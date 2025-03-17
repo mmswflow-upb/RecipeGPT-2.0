@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.service.annotation.HttpExchange;
 
 import java.util.*;
 
@@ -22,38 +21,89 @@ public class RecipeController {
         this.openAiApiKey = openAiApiKey;
     }
 
-    // Method for building the request body based on some input parameters
-    private Map<String, Object> buildRequestBody(String model, String systemPromptText,String userPromptText, String schemaName, Map<String, Object> schema) {
-        // Define Messages as List
+    // ----------------------
+    //       Endpoints
+    // ----------------------
+
+    @GetMapping("/getRecipes")
+    public ResponseEntity<?> getRecipes(@RequestParam String recipeQuery,
+                                        @RequestParam(defaultValue = "5") int numberOfRecipes) {
+
+        // 1) Build the JSON schema for recipes
+        Map<String, Object> recipeSchema = buildRecipeSchema();
+
+        // 2) Build request body
+        Map<String, Object> requestBody = buildRequestBody(
+                "gpt-4o",
+                "You are a recipe generator. Respond with valid JSON format, without extra escaping or backslashes.",
+                "Generate " + numberOfRecipes + " recipes for '" + recipeQuery + "' strictly following the given schema.",
+                "multiple_recipes_schema",
+                recipeSchema
+        );
+
+        // 3) Send request & parse content
+        return sendRequestToOpenAI(requestBody);
+    }
+
+    @GetMapping("/randomQuote")
+    public ResponseEntity<?> getRandomQuote() {
+        // 1) Build the JSON schema for quotes
+        Map<String, Object> quoteSchema = buildQuoteSchema();
+
+        // 2) Build request body
+        Map<String, Object> requestBody = buildRequestBody(
+                "gpt-4o",
+                "You are a renowned chef and philosopher. Respond with valid JSON format, without extra escaping or backslashes.",
+                "Generate a random quote about cooking strictly following the given schema.",
+                "random_quote_schema",
+                quoteSchema
+        );
+
+        // 3) Send request & parse content
+        return sendRequestToOpenAI(requestBody);
+    }
+
+    // ----------------------
+    //   Internal Methods
+    // ----------------------
+
+    /**
+     * Builds the request body for OpenAI with a JSON schema.
+     */
+    private Map<String, Object> buildRequestBody(
+            String model,
+            String systemPromptText,
+            String userPromptText,
+            String schemaName,
+            Map<String, Object> schema
+    ) {
+        // "messages" array
         List<Map<String, String>> messages = List.of(
-                Map.of("role", "system", "content",  systemPromptText+
-                        "Respond with valid JSON format, without extra escaping or backslashes."),
+                Map.of("role", "system", "content", systemPromptText),
                 Map.of("role", "user", "content", userPromptText)
         );
 
-        // Construct Request Body
+        // "response_format" with "json_schema"
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", model);
-        requestBody.put("messages", messages); // ✅ Proper JSON array
+        requestBody.put("messages", messages);
         requestBody.put("response_format", Map.of(
                 "type", "json_schema",
                 "json_schema", Map.of(
                         "name", schemaName,
-                        "schema", schema // ✅ Now includes `schema`
+                        "schema", schema
                 )
         ));
 
         return requestBody;
     }
 
-
-    @GetMapping("/getRecipes")
-    public ResponseEntity<Map<String, Object>> getRecipes(@RequestParam String recipeQuery,
-                                                          @RequestParam(defaultValue = "5") int numberOfRecipes) {
-
-        // 🔹 Define JSON Schema (Fixes Missing `name` Parameter)
+    /**
+     * JSON schema for multiple recipes.
+     */
+    private Map<String, Object> buildRecipeSchema() {
+        // The "schema" field MUST include the entire object definition
         Map<String, Object> recipeSchema = new HashMap<>();
-        recipeSchema.put("name", "multiple_recipes_schema"); // ✅ Fixes Missing Name!
         recipeSchema.put("type", "object");
         recipeSchema.put("properties", Map.of(
                 "recipes", Map.of(
@@ -83,106 +133,80 @@ public class RecipeController {
                         )
                 )
         ));
-
-
-
-        // 🔹 Construct Request Body
-        Map<String, Object> requestBody = buildRequestBody(
-                "gpt-4o",
-                "You are a recipe generator.",
-                "Generate " + numberOfRecipes + " recipes for '" + recipeQuery +
-                        "' strictly following the given schema.",
-                "multiple_recipes_schema",
-                recipeSchema
-        );
-
-
-
-        return sendRequestToOpenAI(requestBody);
+        return recipeSchema;
     }
 
-    @GetMapping("/randomQuote")
-    public ResponseEntity<Map<String, Object>> getRandomQuote() {
-        // 🔹 Define JSON Schema for Quotes
+    /**
+     * JSON schema for a random quote.
+     */
+    private Map<String, Object> buildQuoteSchema() {
         Map<String, Object> quoteSchema = new HashMap<>();
-        quoteSchema.put("name", "random_quote_schema"); // ✅ Fixes Missing Name!
         quoteSchema.put("type", "object");
         quoteSchema.put("properties", Map.of(
                 "quote", Map.of("type", "string")
         ));
-
-
-
-        Map<String, Object> requestBody = buildRequestBody(
-                "gpt-4o",
-                "You are a renowned chef and philosopher.",
-                "Generate a random quote about cooking strictly following the given schema.",
-                "random_quote_schema",
-                quoteSchema
-        );
-        return sendRequestToOpenAI(requestBody);
+        return quoteSchema;
     }
 
-    private ResponseEntity<Map<String, Object>> sendRequestToOpenAI(Map<String, Object> requestBody) {
+    /**
+     * Sends the request to OpenAI and returns only the parsed JSON from message.content.
+     */
+    private ResponseEntity<?> sendRequestToOpenAI(Map<String, Object> requestBody) {
         try {
             // Convert Java Map to JSON String
             String jsonRequest = objectMapper.writeValueAsString(requestBody);
 
+            // Debug: Print request
+            System.out.println("\n🔹 JSON Request Body:\n" + jsonRequest + "\n");
+
             // Set Headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", "Bearer " + openAiApiKey);
+            headers.setBearerAuth(openAiApiKey);
 
             // Create HTTP Request
             HttpEntity<String> entity = new HttpEntity<>(jsonRequest, headers);
 
             // Make the API Call
-            ResponseEntity<Map> response = restTemplate.exchange(openAiApiUrl, HttpMethod.POST, entity, Map.class);
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    openAiApiUrl,
+                    HttpMethod.POST,
+                    entity,
+                    Map.class
+            );
+
             Map<String, Object> responseBody = response.getBody();
+            if (responseBody == null) {
+                return ResponseEntity.status(response.getStatusCode())
+                        .body(Map.of("error", "OpenAI returned empty response."));
+            }
 
-
-            if (responseBody != null) {
-                // Case 1: Response contains "choices" (typical for chat completions)
-                if (responseBody.containsKey("choices")) {
-                    List<?> choices = (List<?>) responseBody.get("choices");
-                    if (!choices.isEmpty()) {
-                        Map<String, Object> firstChoice = (Map<String, Object>) choices.get(0);
-                        if (firstChoice.containsKey("message")) {
-                            Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
-                            if (message.containsKey("content")) {
-                                String contentString = message.get("content").toString();
-                                // Deserialize the JSON string inside "content"
-                                Map<String, Object> parsedContent = objectMapper.readValue(contentString, Map.class);
-                                message.put("content", parsedContent);
-                            }
+            // We only want the "content" from the first choice
+            if (responseBody.containsKey("choices")) {
+                List<?> choices = (List<?>) responseBody.get("choices");
+                if (!choices.isEmpty()) {
+                    Map<String, Object> firstChoice = (Map<String, Object>) choices.get(0);
+                    if (firstChoice.containsKey("message")) {
+                        Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
+                        if (message.containsKey("content")) {
+                            // The actual JSON is inside "content"
+                            String contentString = message.get("content").toString();
+                            // Parse contentString to a Map (the actual user data)
+                            Map<String, Object> parsedJson = objectMapper.readValue(contentString, Map.class);
+                            // Return ONLY that parsed JSON, removing usage, tokens, etc.
+                            return ResponseEntity.ok(parsedJson);
                         }
                     }
                 }
-                // Case 2: Response directly contains "content"
-                else if (responseBody.containsKey("content")) {
-                    String contentString = responseBody.get("content").toString();
-                    Map<String, Object> parsedContent = objectMapper.readValue(contentString, Map.class);
-                    responseBody.put("content", parsedContent);
-                }
             }
 
+            // If no "choices" or no "message.content" found, return entire response for debugging
             return ResponseEntity.status(response.getStatusCode()).body(responseBody);
+
         } catch (Exception e) {
-            e.printStackTrace(); // Log full error for debugging
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to process request: " + e.getMessage()));
         }
     }
-
-    private void printJsonRequest(Map<String, Object> requestBody) {
-        try {
-            // ✅ Print formatted JSON before sending request
-            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(requestBody);
-            System.out.println("\n🔹 JSON Request Body:\n" + jsonString + "\n");
-        } catch (Exception e) {
-            System.err.println("❌ Error converting request body to JSON: " + e.getMessage());
-        }
-    }
 }
-
-
