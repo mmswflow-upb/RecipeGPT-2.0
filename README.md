@@ -13,3 +13,9 @@ The second iteration of RecipeGPT, this time built for the web which will also b
 JSON format predefined by us. Users have to create accounts in order to be able to save the recipes on the database and also share them with others. They can also ask for live assistance
 from a chatbot if they're trying to follow a recipe and get stuck. (small chance of implementing this too: the app will provide users with links from where they can buy the ingredients
 necessary for the recipe from close stores)
+
+### Link to Trello Board:
+https://trello.com/b/E4HUtMB1/web-programming-2-project-trello-board
+
+### Link to Slack:
+https://app.slack.com/client/T08KSEJ9YGP/C08L9GX2EDQ
