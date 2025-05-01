@@ -1,6 +1,9 @@
 package com.example.recipegpt2_server.controller;
 
+import com.example.recipegpt2_server.service.TemporaryRecipeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.firebase.auth.FirebaseAuth;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +14,12 @@ import java.util.*;
 @RestController
 @RequestMapping("/api") // Base URL
 public class RecipeController {
+
+    @Autowired
+    private FirebaseAuth firebaseAuth;
+
+    @Autowired
+    private TemporaryRecipeService temporaryRecipeService; // Inject our temporary storage service
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final String openAiApiKey;
@@ -25,14 +34,55 @@ public class RecipeController {
     //       Endpoints
     // ----------------------
 
+//    @GetMapping("/getRecipes")
+//    public ResponseEntity<?> getRecipes(@RequestParam String recipeQuery,
+//                                        @RequestParam(defaultValue = "5") int numberOfRecipes) {
+//
+//        // 1) Build the JSON schema for recipes
+//        Map<String, Object> recipeSchema = buildRecipeSchema();
+//
+//        // 2) Build request body
+//        Map<String, Object> requestBody = buildRequestBody(
+//                "gpt-4o",
+//                "You are a recipe generator. Respond with valid JSON format, without extra escaping or backslashes.",
+//                "Generate " + numberOfRecipes + " recipes for '" + recipeQuery + "' strictly following the given schema.",
+//                "multiple_recipes_schema",
+//                recipeSchema
+//        );
+//
+//        // 3) Send request & parse content
+//        return sendRequestToOpenAI(requestBody);
+//    }
+
+    /**
+     * Modified getRecipes endpoint:
+     * 1. Checks for an Authorization header containing a Firebase ID token.
+     * 2. Generates recipes via OpenAI.
+     * 3. Stores the resulting recipes in temporary memory and returns a batchId.
+     */
     @GetMapping("/getRecipes")
-    public ResponseEntity<?> getRecipes(@RequestParam String recipeQuery,
-                                        @RequestParam(defaultValue = "5") int numberOfRecipes) {
+    public ResponseEntity<?> getRecipes(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam String recipeQuery,
+            @RequestParam(defaultValue = "5") int numberOfRecipes) {
 
-        // 1) Build the JSON schema for recipes
+        // 1. Validate the Authorization header
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Missing or invalid Authorization header.");
+        }
+        String idToken = authHeader.substring(7);
+        String uid;
+        try {
+            var decodedToken = firebaseAuth.verifyIdToken(idToken);
+            uid = decodedToken.getUid();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid or expired token: " + e.getMessage());
+        }
+
+        // 2. Build the JSON schema and request body for recipes
         Map<String, Object> recipeSchema = buildRecipeSchema();
-
-        // 2) Build request body
         Map<String, Object> requestBody = buildRequestBody(
                 "gpt-4o",
                 "You are a recipe generator. Respond with valid JSON format, without extra escaping or backslashes.",
@@ -41,8 +91,34 @@ public class RecipeController {
                 recipeSchema
         );
 
-        // 3) Send request & parse content
-        return sendRequestToOpenAI(requestBody);
+        // 3. Call OpenAI API and parse the response
+        ResponseEntity<?> openAiResponse = sendRequestToOpenAI(requestBody);
+        // Expecting that openAiResponse.getBody() holds the generated recipes as a Map
+
+        // 4. Store recipes temporarily and generate a batchId
+        List<Map<String, Object>> generatedRecipes = new ArrayList<>();
+        if (openAiResponse.getBody() instanceof Map) {
+            // Depending on your schema, the recipes might be in a key such as "recipes"
+            Map<String, Object> responseMap = (Map<String, Object>) openAiResponse.getBody();
+            if (responseMap.containsKey("recipes")) {
+                Object recipesObj = responseMap.get("recipes");
+                if (recipesObj instanceof List) {
+                    generatedRecipes = (List<Map<String, Object>>) recipesObj;
+                }
+            }
+        }
+        String batchId = temporaryRecipeService.storeBatch(generatedRecipes);
+
+        // 5. Optionally, you might notify the client via WebSocket that recipes are ready.
+        // (That WebSocket connection and messaging would be set up in another controller; see below.)
+
+        // 6. Return the batch ID so the client can later indicate which recipes to save.
+        Map<String, Object> result = new HashMap<>();
+        result.put("batchId", batchId);
+        result.put("message", "Recipes generated and stored temporarily. Connect via WebSocket and submit your selection to save them to Firestore.");
+        result.put("generatedRecipeCount", generatedRecipes.size());
+        result.put("recipes", generatedRecipes);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/randomQuote")
@@ -62,6 +138,23 @@ public class RecipeController {
         // 3) Send request & parse content
         return sendRequestToOpenAI(requestBody);
     }
+
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyToken(@RequestParam String token) {
+        try {
+            // Use FirebaseAuth to verify the ID token
+            var decodedToken = firebaseAuth.verifyIdToken(token);
+            String uid = decodedToken.getUid();
+
+            // If successful, return the user's UID or any other info
+            return ResponseEntity.ok("User ID: " + uid);
+        } catch (Exception e) {
+            // If token is invalid, handle the exception
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid token: " + e.getMessage());
+        }
+    }
+
 
     // ----------------------
     //   Internal Methods

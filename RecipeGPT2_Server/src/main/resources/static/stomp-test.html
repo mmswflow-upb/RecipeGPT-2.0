@@ -1,0 +1,55 @@
+<!-- src/main/resources/static/stomp-test.html -->
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>STOMP test</title></head>
+<body>
+<button id="connect">Connect</button>
+<button id="disconnect">Disconnect</button><br><br>
+
+<input id="batchId"  placeholder="batchId"><br>
+<input id="indices"  placeholder="selected indices e.g. 0,2"><br>
+<button id="send">Send</button>
+
+<pre id="log" style="background:#111;color:#0f0;padding:8px;height:200px;overflow:auto"></pre>
+
+<!-- Load SockJS first, then the older Stomp UMD -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<script>
+  let client;
+  const log = msg => {
+    document.getElementById('log').textContent += msg + '\n';
+  };
+
+  document.getElementById('connect').onclick = () => {
+    // Point SockJS at your Spring endpoint
+    const sock = new SockJS('http://localhost:8081/ws');
+    client = Stomp.over(sock);
+    client.connect({}, frame => {
+      log('✅ CONNECTED: ' + frame);
+      // Subscribe to your user queue
+      client.subscribe('/user/queue/recipesSaved', m => log('↙ ' + m.body));
+    }, err => {
+      log('❌ ERROR: ' + JSON.stringify(err));
+    });
+  };
+
+  document.getElementById('send').onclick = () => {
+    if (!client || !client.connected) return alert('Not connected');
+    const batchId = document.getElementById('batchId').value.trim();
+    const idx = document.getElementById('indices').value
+            .split(',').map(s => parseInt(s.trim(),10));
+    client.send('/app/saveRecipes', {}, JSON.stringify({
+      batchId: batchId,
+      selectedIndices: idx
+    }));
+    log('↗ Sent saveRecipes(' + batchId + ', [' + idx + '])');
+  };
+
+  document.getElementById('disconnect').onclick = () => {
+    if (client) client.disconnect(() => log('🔒 DISCONNECTED'));
+  };
+</script>
+</body>
+</html>
