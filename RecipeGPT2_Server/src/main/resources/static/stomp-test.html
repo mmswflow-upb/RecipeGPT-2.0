@@ -24,7 +24,7 @@
 
   document.getElementById('connect').onclick = () => {
     // Point SockJS at your Spring endpoint
-    const sock = new SockJS('http://localhost:8081/ws');
+    const sock = new SockJS('http://localhost:8080/ws');
     client = Stomp.over(sock);
     client.connect({}, frame => {
       log('✅ CONNECTED: ' + frame);
