@@ -1,0 +1,85 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Project Context
+
+Objective:
+Build a web application that lets registered users generate, save, share and follow cooking recipes by submitting free-form queries. Recipe content is generated via OpenAI’s API and returned to the client in a predefined JSON schema.
+
+User Types:
+
+Normal Users —
+
+Generate recipes via natural-language queries
+
+Save their own generated recipes to their account
+
+Save any publicly posted recipes from the blog to their account
+
+Share recipes (their own or saved blog recipes) via revocable private links
+
+Invoke a live-chat assistant when following a saved recipe
+
+Cannot publish recipes to the public blog
+
+Admins —
+
+All Normal-User capabilities
+
+Create and publish blog posts featuring recipes (the public blog feed)
+
+Moderate or remove any shared or blog recipes
+
+Core Features:
+
+Recipe Generation:
+
+Users submit a query (e.g. “easy vegan curry”)
+
+Server wraps it in a ChatGPT prompt, calls OpenAI’s API, parses the response, and returns structured JSON
+
+Account Management:
+
+Authentication via Spring Security (JWT)
+
+Firestore stores user profiles and credentials
+
+Registration, login, email verification before saving/sharing
+
+Recipe Persistence & Sharing:
+
+Normal Users:
+
+Save own generated recipes and blog recipes to their account
+
+Share any saved recipe through a revocable /r/{shortCode} link
+
+Admins:
+
+Publish recipes directly to the public blog feed without share-links
+
+Revoke or remove any shared or blog recipe (revoked → HTTP 410)
+
+Recipe Blog (Admins Only):
+
+Admins author and publish posts containing recipe content
+
+All users can browse the public blog feed and save entries to their account
+
+Live Chat Assistance:
+
+While “cooking,” users can open a chat widget scoped to a saved recipe
+
+Ingredient Purchase Links (Optional):
+
+Offer up to 5 nearby store links for ingredients (location consent required)
+
+Technical Stack:
+
+Backend: Spring Boot, Spring Security, Firestore
+
+
+
+Frontend: React with Vite, RESTful /api/v1/... endpoints

@@ -31,28 +31,30 @@ public class RecipeController {
     }
 
     // ----------------------
-    //       Endpoints
+    // Endpoints
     // ----------------------
 
-//    @GetMapping("/getRecipes")
-//    public ResponseEntity<?> getRecipes(@RequestParam String recipeQuery,
-//                                        @RequestParam(defaultValue = "5") int numberOfRecipes) {
-//
-//        // 1) Build the JSON schema for recipes
-//        Map<String, Object> recipeSchema = buildRecipeSchema();
-//
-//        // 2) Build request body
-//        Map<String, Object> requestBody = buildRequestBody(
-//                "gpt-4o",
-//                "You are a recipe generator. Respond with valid JSON format, without extra escaping or backslashes.",
-//                "Generate " + numberOfRecipes + " recipes for '" + recipeQuery + "' strictly following the given schema.",
-//                "multiple_recipes_schema",
-//                recipeSchema
-//        );
-//
-//        // 3) Send request & parse content
-//        return sendRequestToOpenAI(requestBody);
-//    }
+    // @GetMapping("/getRecipes")
+    // public ResponseEntity<?> getRecipes(@RequestParam String recipeQuery,
+    // @RequestParam(defaultValue = "5") int numberOfRecipes) {
+    //
+    // // 1) Build the JSON schema for recipes
+    // Map<String, Object> recipeSchema = buildRecipeSchema();
+    //
+    // // 2) Build request body
+    // Map<String, Object> requestBody = buildRequestBody(
+    // "gpt-4o",
+    // "You are a recipe generator. Respond with valid JSON format, without extra
+    // escaping or backslashes.",
+    // "Generate " + numberOfRecipes + " recipes for '" + recipeQuery + "' strictly
+    // following the given schema.",
+    // "multiple_recipes_schema",
+    // recipeSchema
+    // );
+    //
+    // // 3) Send request & parse content
+    // return sendRequestToOpenAI(requestBody);
+    // }
 
     /**
      * Modified getRecipes endpoint:
@@ -85,11 +87,16 @@ public class RecipeController {
         Map<String, Object> recipeSchema = buildRecipeSchema();
         Map<String, Object> requestBody = buildRequestBody(
                 "gpt-4o",
-                "You are a recipe generator. Respond with valid JSON format, without extra escaping or backslashes.",
-                "Generate " + numberOfRecipes + " recipes for '" + recipeQuery + "' strictly following the given schema.",
+                "You are a recipe generator. Respond with valid JSON format, without extra escaping or backslashes. Make sure appropriately categorize the recipes. " +
+                        "These are the categories, choose the ones that fit them best (individually), you can choose multiple ones from here BUT DONT CHOOSE ANYTHING BESIDES THESE!: Asian Cooking, Mediterranean Cooking, " +
+                        "Latin American Cooking, Middle Eastern & North African Cooking, Indian & South Asian Cooking, " +
+                        "European Continental Cooking, African Cooking, American Cooking, Vegetarian & Plant-Based, Vegan, Gluten-Free, " +
+                        "Low-Carb & Keto, Paleo & Whole30, Seafood & Pescatarian, Desserts & Baking, Breakfast & Brunch, Street Food & Snacks, Soups & Stews, Salads & Grain Bowls, Fusion & Modernist, Halal," +
+                        "Beverages.",
+                "Generate " + numberOfRecipes + " recipes for '" + recipeQuery
+                        + "' strictly following the given schema.",
                 "multiple_recipes_schema",
-                recipeSchema
-        );
+                recipeSchema);
 
         // 3. Call OpenAI API and parse the response
         ResponseEntity<?> openAiResponse = sendRequestToOpenAI(requestBody);
@@ -109,13 +116,17 @@ public class RecipeController {
         }
         String batchId = temporaryRecipeService.storeBatch(generatedRecipes);
 
-        // 5. Optionally, you might notify the client via WebSocket that recipes are ready.
-        // (That WebSocket connection and messaging would be set up in another controller; see below.)
+        // 5. Optionally, you might notify the client via WebSocket that recipes are
+        // ready.
+        // (That WebSocket connection and messaging would be set up in another
+        // controller; see below.)
 
-        // 6. Return the batch ID so the client can later indicate which recipes to save.
+        // 6. Return the batch ID so the client can later indicate which recipes to
+        // save.
         Map<String, Object> result = new HashMap<>();
         result.put("batchId", batchId);
-        result.put("message", "Recipes generated and stored temporarily. Connect via WebSocket and submit your selection to save them to Firestore.");
+        result.put("message",
+                "Recipes generated and stored temporarily. Connect via WebSocket and submit your selection to save them to Firestore.");
         result.put("generatedRecipeCount", generatedRecipes.size());
         result.put("recipes", generatedRecipes);
         return ResponseEntity.ok(result);
@@ -132,8 +143,7 @@ public class RecipeController {
                 "You are a renowned chef and philosopher. Respond with valid JSON format, without extra escaping or backslashes.",
                 "Generate a random quote about cooking strictly following the given schema.",
                 "random_quote_schema",
-                quoteSchema
-        );
+                quoteSchema);
 
         // 3) Send request & parse content
         return sendRequestToOpenAI(requestBody);
@@ -155,9 +165,8 @@ public class RecipeController {
         }
     }
 
-
     // ----------------------
-    //   Internal Methods
+    // Internal Methods
     // ----------------------
 
     /**
@@ -168,13 +177,11 @@ public class RecipeController {
             String systemPromptText,
             String userPromptText,
             String schemaName,
-            Map<String, Object> schema
-    ) {
+            Map<String, Object> schema) {
         // "messages" array
         List<Map<String, String>> messages = List.of(
                 Map.of("role", "system", "content", systemPromptText),
-                Map.of("role", "user", "content", userPromptText)
-        );
+                Map.of("role", "user", "content", userPromptText));
 
         // "response_format" with "json_schema"
         Map<String, Object> requestBody = new HashMap<>();
@@ -184,9 +191,7 @@ public class RecipeController {
                 "type", "json_schema",
                 "json_schema", Map.of(
                         "name", schemaName,
-                        "schema", schema
-                )
-        ));
+                        "schema", schema)));
 
         return requestBody;
     }
@@ -205,27 +210,13 @@ public class RecipeController {
                                 "type", "object",
                                 "properties", Map.of(
                                         "title", Map.of("type", "string"),
-                                        "ingredients", Map.of(
-                                                "type", "array",
-                                                "items", Map.of(
-                                                        "type", "object",
-                                                        "properties", Map.of(
-                                                                "item", Map.of("type", "string"),
-                                                                "amount", Map.of("type", "number"),
-                                                                "unit", Map.of("type", "string")
-                                                        )
-                                                )
-                                        ),
+                                        "categories", Map.of("type", "array", "items", Map.of("type", "string")),
+                                        "ingredients", Map.of("type", "array", "items", Map.of("type", "string")),
                                         "instructions", Map.of(
                                                 "type", "array",
-                                                "items", Map.of("type", "string")
-                                        ),
+                                                "items", Map.of("type", "string")),
                                         "estimatedCookingTime", Map.of("type", "integer"),
-                                        "servings", Map.of("type", "integer")
-                                )
-                        )
-                )
-        ));
+                                        "servings", Map.of("type", "integer"))))));
         return recipeSchema;
     }
 
@@ -236,13 +227,13 @@ public class RecipeController {
         Map<String, Object> quoteSchema = new HashMap<>();
         quoteSchema.put("type", "object");
         quoteSchema.put("properties", Map.of(
-                "quote", Map.of("type", "string")
-        ));
+                "quote", Map.of("type", "string")));
         return quoteSchema;
     }
 
     /**
-     * Sends the request to OpenAI and returns only the parsed JSON from message.content.
+     * Sends the request to OpenAI and returns only the parsed JSON from
+     * message.content.
      */
     private ResponseEntity<?> sendRequestToOpenAI(Map<String, Object> requestBody) {
         try {
@@ -265,8 +256,7 @@ public class RecipeController {
                     openAiApiUrl,
                     HttpMethod.POST,
                     entity,
-                    Map.class
-            );
+                    Map.class);
 
             Map<String, Object> responseBody = response.getBody();
             if (responseBody == null) {
@@ -293,7 +283,8 @@ public class RecipeController {
                 }
             }
 
-            // If no "choices" or no "message.content" found, return entire response for debugging
+            // If no "choices" or no "message.content" found, return entire response for
+            // debugging
             return ResponseEntity.status(response.getStatusCode()).body(responseBody);
 
         } catch (Exception e) {
