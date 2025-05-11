@@ -1,11 +1,17 @@
 package com.example.recipegpt2_server.controller;
 
 import com.example.recipegpt2_server.model.LoginRequest;
-import org.springframework.beans.factory.annotation.Value;
+import com.example.recipegpt2_server.model.User;
+import com.example.recipegpt2_server.service.JwtService;
+import com.example.recipegpt2_server.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,43 +20,69 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthenticationController {
 
-    // Inject the Firebase API key from application.properties
-    @Value("${firebase.api.key}")
-    private String firebaseApiKey;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    // Create a RestTemplate instance
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * Login endpoint.
-     * Clients send an email and password, and this endpoint calls the Firebase REST API
-     * signInWithPassword endpoint. If authentication succeeds, Firebase returns an idToken,
-     * refreshToken, and other info, which are then passed back in the response.
+     * Clients send an email and password, and we authenticate with Spring Security.
+     * If authentication succeeds, we generate a JWT token and return it in the response.
      *
      * POST /api/auth/login
      */
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-        // Firebase sign-in endpoint URL. It requires the API key as a query parameter.
-        String url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + firebaseApiKey;
-
-        // Build the payload for Firebase.
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("email", loginRequest.getEmail());
-        payload.put("password", loginRequest.getPassword());
-        payload.put("returnSecureToken", true); // Must be true to get an idToken back
-
         try {
-            // Call Firebase Authentication REST endpoint.
-            ResponseEntity<Map> response = restTemplate.postForEntity(url, payload, Map.class);
+            // Authenticate the user with Spring Security
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
 
-            // Return the response body (contains idToken, refreshToken, etc.) back to the client.
-            return ResponseEntity.ok(response.getBody());
+            // Get the authenticated user
+            User user = (User) authentication.getPrincipal();
+
+            // Generate JWT token
+            String token = jwtService.generateToken(user);
+
+            // Build the response
+            Map<String, Object> response = new HashMap<>();
+            response.put("idToken", token);
+            response.put("email", user.getEmail());
+            response.put("username", user.getUsernameField());
+            response.put("isAdmin", user.isAdmin());
+            
+            // Add new fields if they exist
+            if (user.getProfile_pic() != null) {
+                response.put("profile_pic", user.getProfile_pic());
+            }
+            if (user.getBio() != null) {
+                response.put("bio", user.getBio());
+            }
+            if (user.getPreferences() != null) {
+                response.put("preferences", user.getPreferences());
+            }
+            if (user.getSavedRecipes() != null) {
+                response.put("savedRecipes", user.getSavedRecipes());
+            }
+            
+            // Return success response
+            return ResponseEntity.ok(response);
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid credentials");
         } catch (Exception e) {
             e.printStackTrace();
-            // On error (e.g. invalid credentials), return an error response.
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid credentials or error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Authentication error: " + e.getMessage());
         }
     }
 }

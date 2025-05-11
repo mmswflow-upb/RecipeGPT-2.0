@@ -1,13 +1,9 @@
 package com.example.recipegpt2_server.controller;
 
+import com.example.recipegpt2_server.model.User;
 import com.example.recipegpt2_server.model.UserRegistrationRequest;
-import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.Firestore;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.UserRecord;
-import com.google.firebase.auth.UserRecord.CreateRequest;
-import com.google.firebase.cloud.FirestoreClient;
+import com.example.recipegpt2_server.service.JwtService;
+import com.example.recipegpt2_server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,54 +17,50 @@ import java.util.Map;
 public class RegistrationController {
 
     @Autowired
-    private FirebaseAuth firebaseAuth;
+    private UserService userService;
+
+    @Autowired
+    private JwtService jwtService;
 
     /**
      * Endpoint for user registration.
-     * This endpoint creates a new user in Firebase Auth and stores additional details in Firestore.
-     * Admin users are stored in a separate "admins" collection while normal users go into "users".
+     * This endpoint creates a new user using Spring Security and stores details in Firestore.
+     * All users (both admins and regular users) are stored in the 'users' collection.
      *
      * POST /api/auth/register
      */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegistrationRequest request) {
         try {
-            // 1. Create a Firebase Auth user using the provided data.
-            CreateRequest createRequest = new CreateRequest()
-                    .setEmail(request.getEmail())
-                    .setPassword(request.getPassword())
-                    .setDisplayName(request.getDisplayName());
-            UserRecord userRecord = firebaseAuth.createUser(createRequest);
-
-            // 2. If this registration is for an admin, set a custom claim.
-            if (request.isAdmin()) {
-                Map<String, Object> claims = new HashMap<>();
-                claims.put("isAdmin", true);
-                firebaseAuth.setCustomUserClaims(userRecord.getUid(), claims);
+            // Register user with our service
+            User user = userService.registerUser(request);
+            
+            // Generate a JWT token for the newly registered user
+            String token = jwtService.generateToken(user);
+            
+            // Prepare response
+            Map<String, Object> response = new HashMap<>();
+            response.put("idToken", token);
+            response.put("email", user.getEmail());
+            response.put("username", user.getUsernameField());
+            response.put("isAdmin", user.isAdmin());
+            response.put("id", user.getId());
+            
+            // Add new fields if they exist
+            if (user.getProfile_pic() != null) {
+                response.put("profile_pic", user.getProfile_pic());
             }
-
-            // 3. Prepare additional user data to store in Firestore.
-            Map<String, Object> userData = new HashMap<>();
-            userData.put("email", request.getEmail());
-            userData.put("displayName", request.getDisplayName());
-            userData.put("admin", request.isAdmin());
-            userData.put("uid", userRecord.getUid());
-            // Optionally, include additional fields like registration timestamp, etc.
-            // userData.put("registeredAt", System.currentTimeMillis());
-
-            // 4. Get Firestore instance.
-            Firestore firestore = FirestoreClient.getFirestore();
-
-            // 5. Write user data to the appropriate collection:
-            //    - "admins" for admin users, "users" for normal users.
-            String collectionName = request.isAdmin() ? "admins" : "users";
-            ApiFuture<?> writeResult = firestore.collection(collectionName)
-                    .document(userRecord.getUid()).set(userData);
-            // Optionally wait for the write to complete:
-            writeResult.get();
-
-            // 6. Return a success response with the new user's UID.
-            return ResponseEntity.ok("User registered successfully with UID: " + userRecord.getUid());
+            if (user.getBio() != null) {
+                response.put("bio", user.getBio());
+            }
+            if (user.getPreferences() != null) {
+                response.put("preferences", user.getPreferences());
+            }
+            if (user.getSavedRecipes() != null) {
+                response.put("savedRecipes", user.getSavedRecipes());
+            }
+            
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

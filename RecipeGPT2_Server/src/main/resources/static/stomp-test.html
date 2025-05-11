@@ -8,6 +8,8 @@
 
 <input id="batchId"  placeholder="batchId"><br>
 <input id="indices"  placeholder="selected indices e.g. 0,2"><br>
+<input id="userId" placeholder="user ID"><br>
+<input id="image" placeholder="image URL (optional)"><br>
 <button id="send">Send</button>
 
 <pre id="log" style="background:#111;color:#0f0;padding:8px;height:200px;overflow:auto"></pre>
@@ -24,7 +26,7 @@
 
   document.getElementById('connect').onclick = () => {
     // Point SockJS at your Spring endpoint
-    const sock = new SockJS('http://localhost:8080/ws');
+    const sock = new SockJS('http://localhost:8081/ws');
     client = Stomp.over(sock);
     client.connect({}, frame => {
       log('✅ CONNECTED: ' + frame);
@@ -40,11 +42,17 @@
     const batchId = document.getElementById('batchId').value.trim();
     const idx = document.getElementById('indices').value
             .split(',').map(s => parseInt(s.trim(),10));
+    const userId = document.getElementById('userId').value.trim();
+    const image = document.getElementById('image').value.trim();
+    
     client.send('/app/saveRecipes', {}, JSON.stringify({
       batchId: batchId,
-      selectedIndices: idx
+      selectedIndices: idx,
+      userId: userId,
+      image: image
     }));
-    log('↗ Sent saveRecipes(' + batchId + ', [' + idx + '])');
+    
+    log('↗ Sent saveRecipes(' + batchId + ', [' + idx + '], ' + userId + ', ' + (image ? 'with image' : 'no image') + ')');
   };
 
   document.getElementById('disconnect').onclick = () => {

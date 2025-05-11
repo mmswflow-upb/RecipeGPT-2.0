@@ -1,11 +1,13 @@
 package com.example.recipegpt2_server.controller;
 
+import com.example.recipegpt2_server.model.User;
 import com.example.recipegpt2_server.service.TemporaryRecipeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.firebase.auth.FirebaseAuth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,9 +16,6 @@ import java.util.*;
 @RestController
 @RequestMapping("/api") // Base URL
 public class RecipeController {
-
-    @Autowired
-    private FirebaseAuth firebaseAuth;
 
     @Autowired
     private TemporaryRecipeService temporaryRecipeService; // Inject our temporary storage service
@@ -58,30 +57,23 @@ public class RecipeController {
 
     /**
      * Modified getRecipes endpoint:
-     * 1. Checks for an Authorization header containing a Firebase ID token.
+     * 1. Uses Spring Security for authentication.
      * 2. Generates recipes via OpenAI.
      * 3. Stores the resulting recipes in temporary memory and returns a batchId.
      */
     @GetMapping("/getRecipes")
     public ResponseEntity<?> getRecipes(
-            @RequestHeader("Authorization") String authHeader,
             @RequestParam String recipeQuery,
             @RequestParam(defaultValue = "5") int numberOfRecipes) {
 
-        // 1. Validate the Authorization header
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // 1. Get the authenticated user from Spring Security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Missing or invalid Authorization header.");
+                    .body("User not authenticated");
         }
-        String idToken = authHeader.substring(7);
-        String uid;
-        try {
-            var decodedToken = firebaseAuth.verifyIdToken(idToken);
-            uid = decodedToken.getUid();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token: " + e.getMessage());
-        }
+        
+        User user = (User) authentication.getPrincipal();
 
         // 2. Build the JSON schema and request body for recipes
         Map<String, Object> recipeSchema = buildRecipeSchema();
@@ -147,22 +139,6 @@ public class RecipeController {
 
         // 3) Send request & parse content
         return sendRequestToOpenAI(requestBody);
-    }
-
-    @GetMapping("/verify")
-    public ResponseEntity<String> verifyToken(@RequestParam String token) {
-        try {
-            // Use FirebaseAuth to verify the ID token
-            var decodedToken = firebaseAuth.verifyIdToken(token);
-            String uid = decodedToken.getUid();
-
-            // If successful, return the user's UID or any other info
-            return ResponseEntity.ok("User ID: " + uid);
-        } catch (Exception e) {
-            // If token is invalid, handle the exception
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid token: " + e.getMessage());
-        }
     }
 
     // ----------------------
@@ -258,39 +234,33 @@ public class RecipeController {
                     entity,
                     Map.class);
 
-            Map<String, Object> responseBody = response.getBody();
-            if (responseBody == null) {
-                return ResponseEntity.status(response.getStatusCode())
-                        .body(Map.of("error", "OpenAI returned empty response."));
-            }
+            // Extract the result
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                Map<String, Object> responseBody = response.getBody();
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
 
-            // We only want the "content" from the first choice
-            if (responseBody.containsKey("choices")) {
-                List<?> choices = (List<?>) responseBody.get("choices");
-                if (!choices.isEmpty()) {
-                    Map<String, Object> firstChoice = (Map<String, Object>) choices.get(0);
-                    if (firstChoice.containsKey("message")) {
-                        Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
-                        if (message.containsKey("content")) {
-                            // The actual JSON is inside "content"
-                            String contentString = message.get("content").toString();
-                            // Parse contentString to a Map (the actual user data)
-                            Map<String, Object> parsedJson = objectMapper.readValue(contentString, Map.class);
-                            // Return ONLY that parsed JSON, removing usage, tokens, etc.
-                            return ResponseEntity.ok(parsedJson);
-                        }
-                    }
+                if (choices != null && !choices.isEmpty()) {
+                    Map<String, Object> firstChoice = choices.get(0);
+                    Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
+                    String content = (String) message.get("content");
+
+                    // Debug: Print response
+                    System.out.println("\n🔸 Raw Response:\n" + content);
+
+                    // Parse the content as JSON
+                    Map<String, Object> parsedResult = objectMapper.readValue(content, Map.class);
+                    return ResponseEntity.ok(parsedResult);
                 }
             }
 
-            // If no "choices" or no "message.content" found, return entire response for
-            // debugging
-            return ResponseEntity.status(response.getStatusCode()).body(responseBody);
+            // In case of errors or unexpected format
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body("Failed to process OpenAI response");
 
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to process request: " + e.getMessage()));
+                    .body("Error calling OpenAI API: " + e.getMessage());
         }
     }
 }

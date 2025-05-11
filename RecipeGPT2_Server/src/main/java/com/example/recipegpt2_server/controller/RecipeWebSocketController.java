@@ -12,6 +12,7 @@ import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,9 +43,37 @@ public class RecipeWebSocketController {
         for (Integer idx : message.getSelectedIndices()) {
             if (idx >= 0 && idx < batch.size()) {
                 var recipe = batch.get(idx);
-                // .add(...) returns an ApiFuture<DocumentReference>
-                var ref = firestore.collection("recipes").add(recipe).get();
-                System.out.println("✨ Saved recipe doc at: " + ref.getPath());
+                
+                // Create a new map to avoid modifying the original recipe in the batch
+                Map<String, Object> recipeToSave = new HashMap<>(recipe);
+                
+                // Add required attributes
+                
+                // Add the user ID if provided
+                if (message.getUserId() != null && !message.getUserId().isEmpty()) {
+                    recipeToSave.put("userId", message.getUserId());
+                }
+                
+                // Add image attribute (if provided, otherwise empty string)
+                String imageValue = (message.getImage() != null) ? message.getImage() : "";
+                recipeToSave.put("image", imageValue);
+                
+                // Set public attribute to false (default)
+                recipeToSave.put("public", false);
+                
+                // Set rating attribute to 0.0 (default)
+                recipeToSave.put("rating", 0.0);
+                
+                // Save the recipe to Firestore
+                var ref = firestore.collection("recipes").add(recipeToSave).get();
+                
+                // Log the saved recipe
+                if (message.getUserId() != null && !message.getUserId().isEmpty()) {
+                    System.out.println("✨ Saved recipe doc at: " + ref.getPath() + " for user: " + message.getUserId());
+                } else {
+                    System.out.println("✨ Saved recipe doc at: " + ref.getPath() + " (no user ID provided)");
+                }
+                
                 saved++;
             }
         }

@@ -1,10 +1,16 @@
 package com.example.recipegpt2_server.model;
 
+import java.util.List;
+
 public class UserRegistrationRequest {
     private String email;
     private String password;
-    private String displayName;
+    private String username;
     private boolean admin; // if true, this registration is for an admin user
+    private String profile_pic;
+    private String bio;
+    private List<String> preferences;
+    private List<String> savedRecipes;
 
     // Constructors (optional), getters, and setters:
 
@@ -22,16 +28,40 @@ public class UserRegistrationRequest {
     public void setPassword(String password) {
         this.password = password;
     }
-    public String getDisplayName() {
-        return displayName;
+    public String getUsername() {
+        return username;
     }
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void setUsername(String username) {
+        this.username = username;
     }
     public boolean isAdmin() {
         return admin;
     }
     public void setAdmin(boolean admin) {
         this.admin = admin;
+    }
+    public String getProfile_pic() {
+        return profile_pic;
+    }
+    public void setProfile_pic(String profile_pic) {
+        this.profile_pic = profile_pic;
+    }
+    public String getBio() {
+        return bio;
+    }
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+    public List<String> getPreferences() {
+        return preferences;
+    }
+    public void setPreferences(List<String> preferences) {
+        this.preferences = preferences;
+    }
+    public List<String> getSavedRecipes() {
+        return savedRecipes;
+    }
+    public void setSavedRecipes(List<String> savedRecipes) {
+        this.savedRecipes = savedRecipes;
     }
 }
