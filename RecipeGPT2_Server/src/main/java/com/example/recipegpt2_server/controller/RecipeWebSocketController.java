@@ -1,10 +1,10 @@
 package com.example.recipegpt2_server.controller;
 
+import com.example.recipegpt2_server.model.Recipe;
 import com.example.recipegpt2_server.model.SaveRecipeMessage;
+import com.example.recipegpt2_server.service.RecipeService;
 import com.example.recipegpt2_server.service.TemporaryRecipeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.cloud.firestore.Firestore;
-import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 //import org.springframework.messaging.handler.annotation.SendToUser;
@@ -15,12 +15,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 @Controller
 public class RecipeWebSocketController {
 
     @Autowired
     private TemporaryRecipeService temporaryRecipeService;
+    
+    @Autowired
+    private RecipeService recipeService;
 
     /**
      * Client sends a SaveRecipeMessage to /app/saveRecipes.
@@ -38,43 +42,42 @@ public class RecipeWebSocketController {
         }
 
         // 2) Save each selected recipe
-        var firestore = FirestoreClient.getFirestore();
         int saved = 0;
         for (Integer idx : message.getSelectedIndices()) {
             if (idx >= 0 && idx < batch.size()) {
-                var recipe = batch.get(idx);
+                Recipe recipe = batch.get(idx);
                 
-                // Create a new map to avoid modifying the original recipe in the batch
-                Map<String, Object> recipeToSave = new HashMap<>(recipe);
-                
-                // Add required attributes
-                
-                // Add the user ID if provided
+                // Set additional properties
                 if (message.getUserId() != null && !message.getUserId().isEmpty()) {
-                    recipeToSave.put("userId", message.getUserId());
+                    recipe.setUserId(message.getUserId());
                 }
                 
-                // Add image attribute (if provided, otherwise empty string)
+                // Set image (if provided, otherwise empty string)
                 String imageValue = (message.getImage() != null) ? message.getImage() : "";
-                recipeToSave.put("image", imageValue);
+                recipe.setImage(imageValue);
                 
-                // Set public attribute to false (default)
-                recipeToSave.put("public", false);
+                // Set public status to false (default)
+                recipe.setPublic(false);
                 
-                // Set rating attribute to 0.0 (default)
-                recipeToSave.put("rating", 0.0);
+                // Set rating to 0.0 (default)
+                recipe.setRating(0.0);
                 
-                // Save the recipe to Firestore
-                var ref = firestore.collection("recipes").add(recipeToSave).get();
-                
-                // Log the saved recipe
-                if (message.getUserId() != null && !message.getUserId().isEmpty()) {
-                    System.out.println("✨ Saved recipe doc at: " + ref.getPath() + " for user: " + message.getUserId());
-                } else {
-                    System.out.println("✨ Saved recipe doc at: " + ref.getPath() + " (no user ID provided)");
+                try {
+                    // Save the recipe using RecipeService
+                    Recipe savedRecipe = recipeService.saveRecipe(recipe);
+                    
+                    // Log the saved recipe
+                    if (message.getUserId() != null && !message.getUserId().isEmpty()) {
+                        System.out.println("✨ Saved recipe doc with ID: " + savedRecipe.getId() + " for user: " + message.getUserId());
+                    } else {
+                        System.out.println("✨ Saved recipe doc with ID: " + savedRecipe.getId() + " (no user ID provided)");
+                    }
+                    
+                    saved++;
+                } catch (ExecutionException | InterruptedException e) {
+                    System.err.println("❌ Error saving recipe: " + e.getMessage());
+                    e.printStackTrace();
                 }
-                
-                saved++;
             }
         }
 

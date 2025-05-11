@@ -1,5 +1,6 @@
 package com.example.recipegpt2_server.controller;
 
+import com.example.recipegpt2_server.model.Recipe;
 import com.example.recipegpt2_server.model.User;
 import com.example.recipegpt2_server.service.TemporaryRecipeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api") // Base URL
@@ -32,28 +34,6 @@ public class RecipeController {
     // ----------------------
     // Endpoints
     // ----------------------
-
-    // @GetMapping("/getRecipes")
-    // public ResponseEntity<?> getRecipes(@RequestParam String recipeQuery,
-    // @RequestParam(defaultValue = "5") int numberOfRecipes) {
-    //
-    // // 1) Build the JSON schema for recipes
-    // Map<String, Object> recipeSchema = buildRecipeSchema();
-    //
-    // // 2) Build request body
-    // Map<String, Object> requestBody = buildRequestBody(
-    // "gpt-4o",
-    // "You are a recipe generator. Respond with valid JSON format, without extra
-    // escaping or backslashes.",
-    // "Generate " + numberOfRecipes + " recipes for '" + recipeQuery + "' strictly
-    // following the given schema.",
-    // "multiple_recipes_schema",
-    // recipeSchema
-    // );
-    //
-    // // 3) Send request & parse content
-    // return sendRequestToOpenAI(requestBody);
-    // }
 
     /**
      * Modified getRecipes endpoint:
@@ -92,35 +72,37 @@ public class RecipeController {
 
         // 3. Call OpenAI API and parse the response
         ResponseEntity<?> openAiResponse = sendRequestToOpenAI(requestBody);
-        // Expecting that openAiResponse.getBody() holds the generated recipes as a Map
 
         // 4. Store recipes temporarily and generate a batchId
-        List<Map<String, Object>> generatedRecipes = new ArrayList<>();
+        List<Map<String, Object>> generatedRecipeMaps = new ArrayList<>();
         if (openAiResponse.getBody() instanceof Map) {
-            // Depending on your schema, the recipes might be in a key such as "recipes"
             Map<String, Object> responseMap = (Map<String, Object>) openAiResponse.getBody();
             if (responseMap.containsKey("recipes")) {
                 Object recipesObj = responseMap.get("recipes");
                 if (recipesObj instanceof List) {
-                    generatedRecipes = (List<Map<String, Object>>) recipesObj;
+                    generatedRecipeMaps = (List<Map<String, Object>>) recipesObj;
                 }
             }
         }
-        String batchId = temporaryRecipeService.storeBatch(generatedRecipes);
+        
+        // Store the recipes and get the batch ID
+        String batchId = temporaryRecipeService.storeBatch(generatedRecipeMaps);
+        
+        // Get the recipes from the service to ensure they're properly converted to Recipe objects
+        List<Recipe> recipes = temporaryRecipeService.getBatch(batchId);
+        
+        // Convert the Recipe objects back to maps for the response
+        List<Map<String, Object>> recipeMapList = recipes.stream()
+                .map(Recipe::toMap)
+                .collect(Collectors.toList());
 
-        // 5. Optionally, you might notify the client via WebSocket that recipes are
-        // ready.
-        // (That WebSocket connection and messaging would be set up in another
-        // controller; see below.)
-
-        // 6. Return the batch ID so the client can later indicate which recipes to
-        // save.
+        // 5. Return the batch ID and recipes
         Map<String, Object> result = new HashMap<>();
         result.put("batchId", batchId);
         result.put("message",
                 "Recipes generated and stored temporarily. Connect via WebSocket and submit your selection to save them to Firestore.");
-        result.put("generatedRecipeCount", generatedRecipes.size());
-        result.put("recipes", generatedRecipes);
+        result.put("generatedRecipeCount", recipes.size());
+        result.put("recipes", recipeMapList); // Return as maps for backward compatibility
         return ResponseEntity.ok(result);
     }
 
