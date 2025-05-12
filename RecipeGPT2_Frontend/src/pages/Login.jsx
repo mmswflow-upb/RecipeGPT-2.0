@@ -67,7 +67,7 @@ const Login = () => {
           )}
 
           <form id="login-form" className="space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-2">
+            <div className="space-y-2 text-left">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-[#1D1D1D]"
@@ -86,7 +86,7 @@ const Login = () => {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 text-left">
               <label
                 htmlFor="password"
                 className="block text-sm font-medium text-[#1D1D1D]"
@@ -105,7 +105,7 @@ const Login = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center">
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -122,9 +122,6 @@ const Login = () => {
                   Remember me
                 </label>
               </div>
-              <span className="text-sm text-[#E63946] hover:underline cursor-pointer">
-                Forgot password?
-              </span>
             </div>
 
             <button

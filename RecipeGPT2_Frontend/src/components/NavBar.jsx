@@ -17,7 +17,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-[#FFFDF9] border-b border-gray-200 fixed w-full top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 relative">
+      <div className="max-w-md mx-auto px-4 relative">
         <div className="flex justify-center items-center py-3 relative">
           {/* Centered Logo */}
           <Link
