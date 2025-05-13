@@ -17,5 +17,8 @@ necessary for the recipe from close stores)
 ### Link to Trello Board:
 https://trello.com/b/E4HUtMB1/web-programming-2-project-trello-board
 
+### Link to Figma:
+https://www.figma.com/design/whY6YX4oTTjbNNhWwIZwUK/RecipeGPT-2.0?node-id=0-1&t=3FOK3AMgYEdsdd7U-1
+
 ### Link to Slack:
 https://app.slack.com/client/T08KSEJ9YGP/C08L9GX2EDQ
