@@ -17,6 +17,7 @@ const Login = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -110,21 +111,31 @@ const Login = () => {
               <label htmlFor="password" className="block text-sm font-medium">
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none placeholder-gray-400 ${
-                  theme === "light"
-                    ? "bg-white text-black"
-                    : "bg-[#333] text-white"
-                }`}
-                placeholder="Enter your password"
-                autoComplete="off"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none placeholder-gray-400 ${
+                    theme === "light"
+                      ? "bg-white text-black"
+                      : "bg-[#333] text-white"
+                  }`}
+                  placeholder="Enter your password"
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#E63946] text-sm focus:outline-none bg-transparent border-none shadow-none"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center">

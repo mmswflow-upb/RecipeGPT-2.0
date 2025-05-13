@@ -14,10 +14,13 @@ const Register = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    terms: false,
+    displayName: "",
+    isAdmin: false,
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -36,15 +39,15 @@ const Register = () => {
       return;
     }
 
-    if (!formData.terms) {
-      setError("You must accept the terms and conditions");
-      return;
-    }
-
     setLoading(true);
 
     try {
-      await register(formData.email, formData.password);
+      await register(
+        formData.email,
+        formData.password,
+        formData.displayName,
+        formData.isAdmin
+      );
       navigate("/dashboard"); // Redirect to dashboard after successful registration
     } catch (err) {
       setError(
@@ -122,21 +125,31 @@ const Register = () => {
               <label htmlFor="password" className="block text-sm font-medium">
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none placeholder-gray-400 ${
-                  theme === "light"
-                    ? "bg-white text-black"
-                    : "bg-[#333] text-white"
-                }`}
-                placeholder="Create a password"
-                autoComplete="off"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none placeholder-gray-400 ${
+                    theme === "light"
+                      ? "bg-white text-black"
+                      : "bg-[#333] text-white"
+                  }`}
+                  placeholder="Create a password"
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#E63946] text-sm focus:outline-none bg-transparent border-none shadow-none"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2 text-left">
@@ -146,42 +159,69 @@ const Register = () => {
               >
                 Confirm Password
               </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none placeholder-gray-400 ${
+                    theme === "light"
+                      ? "bg-white text-black"
+                      : "bg-[#333] text-white"
+                  }`}
+                  placeholder="Confirm your password"
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#E63946] text-sm focus:outline-none bg-transparent border-none shadow-none"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-left">
+              <label
+                htmlFor="displayName"
+                className="block text-sm font-medium"
+              >
+                Display Name
+              </label>
               <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
+                type="text"
+                id="displayName"
+                name="displayName"
                 required
-                value={formData.confirmPassword}
+                value={formData.displayName}
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none placeholder-gray-400 ${
                   theme === "light"
                     ? "bg-white text-black"
                     : "bg-[#333] text-white"
                 }`}
-                placeholder="Confirm your password"
+                placeholder="Enter your display name"
                 autoComplete="off"
               />
             </div>
 
             <div className="flex items-center">
               <ThemedCheckbox
-                id="terms"
-                name="terms"
-                checked={formData.terms}
+                id="isAdmin"
+                name="isAdmin"
+                checked={formData.isAdmin}
                 onChange={handleChange}
               />
               <label
-                htmlFor="terms"
+                htmlFor="isAdmin"
                 className="ml-2 block text-sm text-[#6C757D]"
               >
-                I agree to the{" "}
-                <span className="text-[#E63946] hover:underline cursor-pointer">
-                  Terms of Service
-                </span>{" "}
-                and{" "}
-                <span className="text-[#E63946] hover:underline cursor-pointer">
-                  Privacy Policy
-                </span>
+                Register as Admin
               </label>
             </div>
 

@@ -47,8 +47,13 @@ export const authService = {
     return response.data;
   },
 
-  register: async (email, password) => {
-    const response = await api.post("/api/auth/register", { email, password });
+  register: async (email, password, displayName, isAdmin) => {
+    const response = await api.post("/api/auth/register", {
+      email,
+      password,
+      displayName,
+      isAdmin,
+    });
     const { idToken, ...userData } = response.data;
 
     // Store the token and user data
