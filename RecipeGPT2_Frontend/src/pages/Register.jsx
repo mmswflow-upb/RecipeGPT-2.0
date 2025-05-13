@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import ThemedCheckbox from "../components/ThemedCheckbox";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -94,6 +95,7 @@ const Register = () => {
             id="register-form"
             className="space-y-6"
             onSubmit={handleSubmit}
+            autoComplete="off"
           >
             <div className="space-y-2 text-left">
               <label htmlFor="email" className="block text-sm font-medium">
@@ -112,6 +114,7 @@ const Register = () => {
                     : "bg-[#333] text-white"
                 }`}
                 placeholder="Enter your email"
+                autoComplete="off"
               />
             </div>
 
@@ -132,6 +135,7 @@ const Register = () => {
                     : "bg-[#333] text-white"
                 }`}
                 placeholder="Create a password"
+                autoComplete="off"
               />
             </div>
 
@@ -155,17 +159,16 @@ const Register = () => {
                     : "bg-[#333] text-white"
                 }`}
                 placeholder="Confirm your password"
+                autoComplete="off"
               />
             </div>
 
             <div className="flex items-center">
-              <input
-                type="checkbox"
+              <ThemedCheckbox
                 id="terms"
                 name="terms"
                 checked={formData.terms}
                 onChange={handleChange}
-                className="h-4 w-4 border-gray-300 rounded focus:ring-[#E63946] text-[#E63946] accent-[#E63946]"
               />
               <label
                 htmlFor="terms"

@@ -60,9 +60,12 @@ const Navbar = () => {
             ) : (
               <button
                 onClick={handleThemeToggle}
-                className="p-0 bg-transparent shadow-none focus:outline-none group"
+                className="p-0 bg-transparent shadow-none focus:outline-none"
               >
-                <i className="fa-solid fa-sun text-xl text-[#E63946] group-hover:text-[#cc333f] group-focus:text-[#cc333f] dark:group-hover:text-white dark:group-focus:text-white transition-colors"></i>
+                <i
+                  className="fa-solid fa-sun text-xl transition-colors"
+                  style={{ color: theme === "dark" ? "#fff" : "#000" }}
+                ></i>
               </button>
             )}
           </div>

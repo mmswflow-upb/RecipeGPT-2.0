@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import ThemedCheckbox from "../components/ThemedCheckbox";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -78,7 +79,12 @@ const Login = () => {
             </div>
           )}
 
-          <form id="login-form" className="space-y-6" onSubmit={handleSubmit}>
+          <form
+            id="login-form"
+            className="space-y-6"
+            onSubmit={handleSubmit}
+            autoComplete="off"
+          >
             <div className="space-y-2 text-left">
               <label htmlFor="email" className="block text-sm font-medium">
                 Email
@@ -96,6 +102,7 @@ const Login = () => {
                     : "bg-[#333] text-white"
                 }`}
                 placeholder="Enter your email"
+                autoComplete="off"
               />
             </div>
 
@@ -116,26 +123,23 @@ const Login = () => {
                     : "bg-[#333] text-white"
                 }`}
                 placeholder="Enter your password"
+                autoComplete="off"
               />
             </div>
 
             <div className="flex items-center">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  name="remember"
-                  checked={formData.remember}
-                  onChange={handleChange}
-                  className="h-4 w-4 border-gray-300 rounded focus:ring-[#E63946] text-[#E63946] accent-[#E63946]"
-                />
-                <label
-                  htmlFor="remember"
-                  className="ml-2 block text-sm text-[#6C757D]"
-                >
-                  Remember me
-                </label>
-              </div>
+              <ThemedCheckbox
+                id="remember"
+                name="remember"
+                checked={formData.remember}
+                onChange={handleChange}
+              />
+              <label
+                htmlFor="remember"
+                className="ml-2 block text-sm text-[#6C757D]"
+              >
+                Remember me
+              </label>
             </div>
 
             <button
