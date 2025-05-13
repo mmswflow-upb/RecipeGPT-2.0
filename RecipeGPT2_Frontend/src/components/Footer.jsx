@@ -1,12 +1,20 @@
 import React from "react";
+import { useTheme } from "../contexts/ThemeContext";
 
 const Footer = () => {
+  const { theme } = useTheme();
   return (
-    <footer className="bg-[#FFFDF9] border-t border-gray-200">
+    <footer
+      className={`${
+        theme === "light"
+          ? "bg-[#FFFDF9] text-[#1D1D1D]"
+          : "bg-black text-white"
+      } border-t border-gray-200`}
+    >
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-4 gap-8 text-center">
           <div className="flex flex-col items-start mx-auto">
-            <h3 className="text-sm font-semibold text-[#1D1D1D] mb-4">Legal</h3>
+            <h3 className="text-sm font-semibold mb-4">Legal</h3>
             <ul className="space-y-2 text-left">
               <li>
                 <span className="text-[#6C757D] hover:text-[#E63946] cursor-pointer">
@@ -21,7 +29,7 @@ const Footer = () => {
             </ul>
           </div>
           <div className="flex flex-col items-start mx-auto">
-            <h3 className="text-sm font-semibold text-[#1D1D1D] mb-4">Help</h3>
+            <h3 className="text-sm font-semibold mb-4">Help</h3>
             <ul className="space-y-2 text-left">
               <li>
                 <span className="text-[#6C757D] hover:text-[#E63946] cursor-pointer">
@@ -36,9 +44,7 @@ const Footer = () => {
             </ul>
           </div>
           <div className="flex flex-col items-start mx-auto">
-            <h3 className="text-sm font-semibold text-[#1D1D1D] mb-4">
-              About Us
-            </h3>
+            <h3 className="text-sm font-semibold mb-4">About Us</h3>
             <ul className="space-y-2 text-left">
               <li>
                 <span className="text-[#6C757D] hover:text-[#E63946] cursor-pointer">
@@ -63,9 +69,7 @@ const Footer = () => {
             </ul>
           </div>
           <div className="flex flex-col items-start mx-auto">
-            <h3 className="text-sm font-semibold text-[#1D1D1D] mb-4">
-              Follow Us
-            </h3>
+            <h3 className="text-sm font-semibold mb-4">Follow Us</h3>
             <div className="flex space-x-4">
               <span className="text-[#6C757D] hover:text-[#E63946] cursor-pointer">
                 <i className="fa-brands fa-twitter text-xl"></i>

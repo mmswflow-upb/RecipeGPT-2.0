@@ -1,9 +1,11 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -15,23 +17,37 @@ const Navbar = () => {
     }
   };
 
+  const handleThemeToggle = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
+
   return (
-    <nav className="bg-[#FFFDF9] border-b border-gray-200 fixed w-full top-0 z-50">
-      <div className="max-w-md mx-auto px-4 relative">
-        <div className="flex justify-center items-center py-3 relative">
-          {/* Centered Logo */}
+    <nav
+      className={`${
+        theme === "light"
+          ? "bg-[#FFFDF9] text-[#1D1D1D]"
+          : "bg-black text-white"
+      } border-b border-gray-200 fixed w-full top-0 z-50`}
+    >
+      <div className="max-w-7xl mx-auto px-4 relative">
+        <div className="flex justify-between items-center py-3 relative">
+          {/* Left: Logo */}
           <Link
             to={isAuthenticated ? "/dashboard" : "/"}
             className="flex items-center space-x-2 cursor-pointer"
           >
-            <i className="fa-solid fa-utensils text-[#E63946] text-2xl"></i>
-            <span className="text-xl font-bold text-[#1D1D1D]">RecipeGPT</span>
+            <i
+              className={`fa-solid fa-utensils text-2xl ${
+                theme === "light" ? "text-[#E63946]" : "text-[#E63946]"
+              }`}
+            ></i>
+            <span className="text-xl font-bold">RecipeGPT</span>
           </Link>
-          {/* Right section absolutely positioned */}
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center">
+          {/* Right: Theme/Logout */}
+          <div className="flex items-center">
             {isAuthenticated ? (
               <>
-                <span className="text-[#1D1D1D] mr-4 hidden sm:inline">
+                <span className="mr-4 hidden sm:inline">
                   Welcome, {user?.email}
                 </span>
                 <button
@@ -42,8 +58,11 @@ const Navbar = () => {
                 </button>
               </>
             ) : (
-              <button className="text-[#1D1D1D] hover:text-[#E63946]">
-                <i className="fa-solid fa-sun text-xl"></i>
+              <button
+                onClick={handleThemeToggle}
+                className="p-0 bg-transparent shadow-none focus:outline-none group"
+              >
+                <i className="fa-solid fa-sun text-xl text-[#E63946] group-hover:text-[#cc333f] group-focus:text-[#cc333f] dark:group-hover:text-white dark:group-focus:text-white transition-colors"></i>
               </button>
             )}
           </div>

@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { theme } = useTheme();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -53,23 +55,31 @@ const Register = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div
+      className={`flex flex-col min-h-screen ${
+        theme === "light"
+          ? "bg-[#FFFDF9] text-[#1D1D1D]"
+          : "bg-black text-white"
+      }`}
+    >
       <Navbar />
 
       <main
         id="register-container"
-        className="flex flex-1 items-center justify-center w-full bg-[#FFFDF9] pt-20 mb-12"
+        className={`flex flex-1 items-center justify-center w-full pt-20 mb-12 ${
+          theme === "light" ? "bg-[#FFFDF9]" : "bg-black"
+        }`}
       >
         <div
           id="register-card"
-          className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md"
+          className={`rounded-lg shadow-lg p-8 w-full max-w-md ${
+            theme === "light" ? "bg-white" : "bg-[#222]"
+          }`}
         >
           <div className="text-center mb-8">
             <i className="fa-solid fa-utensils text-[#E63946] text-4xl mb-4"></i>
-            <h1 className="text-2xl font-bold text-[#1D1D1D]">
-              Create Account
-            </h1>
-            <p className="text-[#6C757D] mt-2">
+            <h1 className="text-2xl font-bold">Create Account</h1>
+            <p className="mt-2 text-[#6C757D]">
               Join RecipeGPT and start cooking!
             </p>
           </div>
@@ -86,10 +96,7 @@ const Register = () => {
             onSubmit={handleSubmit}
           >
             <div className="space-y-2 text-left">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-[#1D1D1D]"
-              >
+              <label htmlFor="email" className="block text-sm font-medium">
                 Email
               </label>
               <input
@@ -99,16 +106,17 @@ const Register = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none bg-white text-black placeholder-gray-400"
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none placeholder-gray-400 ${
+                  theme === "light"
+                    ? "bg-white text-black"
+                    : "bg-[#333] text-white"
+                }`}
                 placeholder="Enter your email"
               />
             </div>
 
             <div className="space-y-2 text-left">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-[#1D1D1D]"
-              >
+              <label htmlFor="password" className="block text-sm font-medium">
                 Password
               </label>
               <input
@@ -118,7 +126,11 @@ const Register = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none bg-white text-black placeholder-gray-400"
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none placeholder-gray-400 ${
+                  theme === "light"
+                    ? "bg-white text-black"
+                    : "bg-[#333] text-white"
+                }`}
                 placeholder="Create a password"
               />
             </div>
@@ -126,7 +138,7 @@ const Register = () => {
             <div className="space-y-2 text-left">
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-[#1D1D1D]"
+                className="block text-sm font-medium"
               >
                 Confirm Password
               </label>
@@ -137,7 +149,11 @@ const Register = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none bg-white text-black placeholder-gray-400"
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none placeholder-gray-400 ${
+                  theme === "light"
+                    ? "bg-white text-black"
+                    : "bg-[#333] text-white"
+                }`}
                 placeholder="Confirm your password"
               />
             </div>
@@ -149,7 +165,7 @@ const Register = () => {
                 name="terms"
                 checked={formData.terms}
                 onChange={handleChange}
-                className="h-4 w-4 text-[#E63946] bg-white border-gray-300 rounded focus:ring-[#E63946] accent-[#E63946]"
+                className="h-4 w-4 border-gray-300 rounded focus:ring-[#E63946] text-[#E63946] accent-[#E63946]"
               />
               <label
                 htmlFor="terms"
