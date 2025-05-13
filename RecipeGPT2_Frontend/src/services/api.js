@@ -1,15 +1,13 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api"; // Update this with your backend URL
-
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: import.meta.env.VITE_SERVER_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Add a request interceptor to add the auth token to requests
+// Add a request interceptor to include the token in all requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -30,6 +28,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
       window.location.href = "/login";
     }
     return Promise.reject(error);
@@ -38,13 +37,42 @@ api.interceptors.response.use(
 
 export const authService = {
   login: async (email, password) => {
-    const response = await api.post("/auth/login", { email, password });
+    const response = await api.post("/api/auth/login", { email, password });
+    const { idToken, ...userData } = response.data;
+
+    // Store the token and user data
+    localStorage.setItem("token", idToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+
     return response.data;
   },
 
   register: async (email, password) => {
-    const response = await api.post("/auth/register", { email, password });
+    const response = await api.post("/api/auth/register", { email, password });
+    const { idToken, ...userData } = response.data;
+
+    // Store the token and user data
+    localStorage.setItem("token", idToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+
     return response.data;
+  },
+
+  logout: () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+  },
+
+  getCurrentUser: () => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      return JSON.parse(userStr);
+    }
+    return null;
+  },
+
+  isAuthenticated: () => {
+    return !!localStorage.getItem("token");
   },
 
   validateToken: async () => {
