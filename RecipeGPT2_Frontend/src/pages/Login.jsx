@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
-import Navbar from "../components/Navbar";
+import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 import ThemedCheckbox from "../components/ThemedCheckbox";
 import Alert from "../components/Alert";
@@ -61,7 +61,7 @@ const Login = () => {
           : "bg-black text-white"
       }`}
     >
-      <Navbar />
+      <NavBar />
 
       <main
         id="login-container"

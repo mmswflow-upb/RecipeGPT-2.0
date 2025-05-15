@@ -1,7 +1,7 @@
 import React from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
-import Navbar from "../components/Navbar";
+import NavBar from "../components/NavBar";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -15,7 +15,7 @@ const Dashboard = () => {
           : "bg-black text-white"
       }`}
     >
-      <Navbar />
+      <NavBar />
 
       <main
         className={`flex flex-1 items-center justify-center w-full py-8 pt-20 ${
