@@ -4,6 +4,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import ProfileButton from "./ProfileButton";
 import ThemeToggle from "./ThemeToggle";
+import BlogButton from "./BlogButton";
+import SavedRecipesButton from "./SavedRecipesButton";
+import GenerateRecipeButton from "./GenerateRecipeButton";
 
 const NavBar = () => {
   const { isAuthenticated } = useAuth();
@@ -22,7 +25,7 @@ const NavBar = () => {
           {/* Left: Logo and Navigation */}
           <div className="flex items-center space-x-6">
             <Link
-              to={isAuthenticated ? "/dashboard" : "/"}
+              to={isAuthenticated ? "/generate" : "/"}
               className="flex items-center space-x-2 cursor-pointer"
             >
               <i
@@ -35,27 +38,9 @@ const NavBar = () => {
 
             {isAuthenticated && (
               <>
-                <Link
-                  to="/dashboard"
-                  className="flex items-center space-x-2 hover:text-[#E63946] transition-colors"
-                >
-                  <i className="fa-solid fa-house text-lg"></i>
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  to="/generate"
-                  className="flex items-center space-x-2 hover:text-[#E63946] transition-colors"
-                >
-                  <i className="fa-solid fa-wand-magic-sparkles text-lg"></i>
-                  <span>Generate Recipe</span>
-                </Link>
-                <Link
-                  to="/saved"
-                  className="flex items-center space-x-2 hover:text-[#E63946] transition-colors"
-                >
-                  <i className="fa-solid fa-bookmark text-lg"></i>
-                  <span>Saved Recipes</span>
-                </Link>
+                <GenerateRecipeButton />
+                <SavedRecipesButton />
+                <BlogButton />
               </>
             )}
           </div>

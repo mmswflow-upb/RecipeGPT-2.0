@@ -6,56 +6,34 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
-import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
 import RecipeGenerator from "./pages/RecipeGenerator";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
-function AppContent() {
-  const { theme } = useTheme();
-  return (
-    <div
-      className={`min-h-screen flex flex-col ${
-        theme === "light" ? "bg-[#FFFDF9]" : "bg-black"
-      }`}
-    >
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/generate"
-          element={
-            <ProtectedRoute>
-              <RecipeGenerator />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </div>
-  );
-}
-
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
+    <Router>
+      <ThemeProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/generate"
+              element={
+                <ProtectedRoute>
+                  <RecipeGenerator />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthProvider>
+      </ThemeProvider>
+    </Router>
   );
 }
 

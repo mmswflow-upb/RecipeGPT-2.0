@@ -2,23 +2,16 @@ import React from "react";
 import { useTheme } from "../contexts/ThemeContext";
 
 const ThemeToggle = () => {
-  const { theme, setTheme } = useTheme();
-
-  const handleThemeToggle = () => {
-    setTheme(theme === "light" ? "dark" : "light");
-  };
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <button
-      onClick={handleThemeToggle}
+      onClick={toggleTheme}
       className="bg-transparent border-none p-0 focus:outline-none hover:opacity-80 transition-opacity"
-      title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+      aria-label="Toggle theme"
+      title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
     >
-      <i
-        className={`fa-solid ${
-          theme === "light" ? "fa-sun" : "fa-moon"
-        } text-xl text-[#E63946]`}
-      ></i>
+      <i className="fa-solid fa-sun text-xl text-[#E63946]"></i>
     </button>
   );
 };
