@@ -20,6 +20,11 @@ const ProfileButton = () => {
     }
   };
 
+  const handleSettings = () => {
+    navigate("/settings");
+    setShowDropdown(false);
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -58,13 +63,27 @@ const ProfileButton = () => {
         <div
           className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 ${
             theme === "light"
-              ? "bg-white border border-gray-200"
-              : "bg-[#222] border border-gray-700"
+              ? "bg-[#FFFDF9] border border-gray-200"
+              : "bg-black border border-gray-700"
           }`}
         >
           <button
+            onClick={handleSettings}
+            className={`w-full text-left px-4 py-2 text-sm hover:bg-[#E63946] hover:text-white transition-colors bg-transparent border-none focus:outline-none ${
+              theme === "light" ? "text-gray-700" : "text-gray-200"
+            }`}
+          >
+            <i className="fa-solid fa-gear mr-2"></i>
+            Settings
+          </button>
+          <div
+            className={`h-px my-1 ${
+              theme === "light" ? "bg-gray-200" : "bg-gray-700"
+            }`}
+          />
+          <button
             onClick={handleLogout}
-            className={`w-full text-left px-4 py-2 text-sm hover:bg-[#E63946] hover:text-white transition-colors ${
+            className={`w-full text-left px-4 py-2 text-sm hover:bg-[#E63946] hover:text-white transition-colors bg-transparent border-none focus:outline-none ${
               theme === "light" ? "text-gray-700" : "text-gray-200"
             }`}
           >
