@@ -43,32 +43,60 @@ const Navbar = () => {
             ></i>
             <span className="text-xl font-bold">RecipeGPT</span>
           </Link>
-          {/* Right: Theme/Logout */}
-          <div className="flex items-center">
-            {isAuthenticated ? (
-              <>
-                <span className="mr-4 hidden sm:inline">
-                  Welcome, {user?.email}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="text-[#E63946] hover:text-[#cc333f] transition duration-200"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleThemeToggle}
-                className="p-0 bg-transparent shadow-none focus:outline-none"
-                style={{ color: "#E63946" }}
+
+          {/* Center: Navigation Links */}
+          {isAuthenticated && (
+            <div className="flex items-center space-x-6">
+              <Link
+                to="/dashboard"
+                className="flex items-center space-x-2 hover:text-[#E63946] transition-colors"
               >
-                <i
-                  className="fa-solid fa-sun text-xl"
-                  style={{ color: "#E63946" }}
-                ></i>
+                <i className="fa-solid fa-house text-lg"></i>
+                <span>Dashboard</span>
+              </Link>
+              <Link
+                to="/generate"
+                className="flex items-center space-x-2 hover:text-[#E63946] transition-colors"
+              >
+                <i className="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                <span>Generate Recipe</span>
+              </Link>
+              <Link
+                to="/saved"
+                className="flex items-center space-x-2 hover:text-[#E63946] transition-colors"
+              >
+                <i className="fa-solid fa-bookmark text-lg"></i>
+                <span>Saved Recipes</span>
+              </Link>
+            </div>
+          )}
+
+          {/* Right: Theme/Logout */}
+          <div className="flex items-center space-x-4">
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="hover:opacity-80 transition-opacity"
+                title="Logout"
+              >
+                <img src="/log-out.png" alt="Logout" className="w-6 h-6" />
               </button>
             )}
+            <button
+              onClick={handleThemeToggle}
+              className="bg-transparent border-none p-0 focus:outline-none hover:opacity-80 transition-opacity"
+              title={
+                theme === "light"
+                  ? "Switch to Dark Mode"
+                  : "Switch to Light Mode"
+              }
+            >
+              <i
+                className={`fa-solid ${
+                  theme === "light" ? "fa-sun" : "fa-moon"
+                } text-xl text-[#E63946]`}
+              ></i>
+            </button>
           </div>
         </div>
       </div>

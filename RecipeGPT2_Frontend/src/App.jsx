@@ -10,6 +10,7 @@ import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import RecipeGenerator from "./pages/RecipeGenerator";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -29,6 +30,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/generate"
+          element={
+            <ProtectedRoute>
+              <RecipeGenerator />
             </ProtectedRoute>
           }
         />

@@ -5,6 +5,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ThemedCheckbox from "../components/ThemedCheckbox";
+import Alert from "../components/Alert";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -48,11 +49,16 @@ const Register = () => {
         formData.displayName,
         formData.isAdmin
       );
-      navigate("/dashboard"); // Redirect to dashboard after successful registration
+      navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Failed to register. Please try again."
-      );
+      console.error("Registration error:", err);
+      // Extract error message from Axios error response
+      const errorMessage =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to register. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -89,9 +95,7 @@ const Register = () => {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-              {error}
-            </div>
+            <Alert type="error" message={error} onClose={() => setError("")} />
           )}
 
           <form

@@ -26,10 +26,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access
+      // Only clear the token and user data, don't redirect
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
@@ -121,6 +120,11 @@ export const recipeService = {
 
   deleteRecipe: async (id) => {
     const response = await api.delete(`/recipes/${id}`);
+    return response.data;
+  },
+
+  generateRecipe: async (prompt) => {
+    const response = await api.post("/recipes/generate", { prompt });
     return response.data;
   },
 };
