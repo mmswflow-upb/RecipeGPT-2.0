@@ -19,22 +19,24 @@ public class User implements UserDetails {
     private String email;
     private String username;
     private String password;
-    private boolean admin;
+    private boolean publisher;
     private String profile_pic;
     private String bio;
     private List<String> preferences;
     private List<String> savedRecipes;
+    private List<String> createdRecipes;
     
     // NoArgsConstructor with non-null defaults for lists
     public User() {
         this.preferences = new ArrayList<>();
         this.savedRecipes = new ArrayList<>();
+        this.createdRecipes = new ArrayList<>();
     }
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (admin) {
-            return Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        if (publisher) {
+            return Collections.singletonList(new SimpleGrantedAuthority("ROLE_PUBLISHER"));
         } else {
             return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
         }

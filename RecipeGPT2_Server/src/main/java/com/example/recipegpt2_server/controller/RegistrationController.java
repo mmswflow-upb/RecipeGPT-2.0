@@ -43,7 +43,7 @@ public class RegistrationController {
             response.put("idToken", token);
             response.put("email", user.getEmail());
             response.put("username", user.getUsernameField());
-            response.put("isAdmin", user.isAdmin());
+            response.put("isPublisher", user.isPublisher());
             response.put("id", user.getId());
             
             // Add new fields if they exist
@@ -58,6 +58,9 @@ public class RegistrationController {
             }
             if (user.getSavedRecipes() != null) {
                 response.put("savedRecipes", user.getSavedRecipes());
+            }
+            if (user.getCreatedRecipes() != null) {
+                response.put("createdRecipes", user.getCreatedRecipes());
             }
             
             return ResponseEntity.ok(response);

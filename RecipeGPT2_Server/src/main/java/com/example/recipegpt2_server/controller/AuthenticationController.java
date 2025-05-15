@@ -58,7 +58,7 @@ public class AuthenticationController {
             response.put("idToken", token);
             response.put("email", user.getEmail());
             response.put("username", user.getUsernameField());
-            response.put("isAdmin", user.isAdmin());
+            response.put("isPublisher", user.isPublisher());
             
             // Add new fields if they exist
             if (user.getProfile_pic() != null) {
@@ -72,6 +72,9 @@ public class AuthenticationController {
             }
             if (user.getSavedRecipes() != null) {
                 response.put("savedRecipes", user.getSavedRecipes());
+            }
+            if (user.getCreatedRecipes() != null) {
+                response.put("createdRecipes", user.getCreatedRecipes());
             }
             
             // Return success response

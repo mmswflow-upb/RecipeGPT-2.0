@@ -40,7 +40,7 @@ public class JwtService {
             User user = (User) userDetails;
             claims.put("id", user.getId());
             claims.put("email", user.getEmail());
-            claims.put("admin", user.isAdmin());
+            claims.put("publisher", user.isPublisher());
             claims.put("username", user.getUsername());
             
             // Add new fields, only if they are not null
@@ -52,6 +52,9 @@ public class JwtService {
             }
             if (user.getPreferences() != null) {
                 claims.put("preferences", user.getPreferences());
+            }
+            if (user.getCreatedRecipes() != null) {
+                claims.put("createdRecipes", user.getCreatedRecipes());
             }
         }
         return generateToken(claims, userDetails);

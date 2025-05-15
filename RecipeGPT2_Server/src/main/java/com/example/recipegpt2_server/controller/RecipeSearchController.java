@@ -81,7 +81,7 @@ public class RecipeSearchController {
             }
             
             String token = authHeader.substring(7);
-            List<Recipe> recipes = recipeRepository.fetchSavedRecipes(token, category, text);
+            List<Recipe> recipes = recipeRepository.fetchCreatedAndSavedRecipes(token, category, text);
             return ResponseEntity.ok(recipes);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

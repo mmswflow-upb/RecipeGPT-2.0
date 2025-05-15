@@ -6,11 +6,12 @@ public class UserRegistrationRequest {
     private String email;
     private String password;
     private String username;
-    private boolean admin; // if true, this registration is for an admin user
+    private boolean publisher; // if true, this registration is for a publisher user
     private String profile_pic;
     private String bio;
     private List<String> preferences;
     private List<String> savedRecipes;
+    private List<String> createdRecipes;
 
     // Constructors (optional), getters, and setters:
 
@@ -34,11 +35,11 @@ public class UserRegistrationRequest {
     public void setUsername(String username) {
         this.username = username;
     }
-    public boolean isAdmin() {
-        return admin;
+    public boolean isPublisher() {
+        return publisher;
     }
-    public void setAdmin(boolean admin) {
-        this.admin = admin;
+    public void setPublisher(boolean publisher) {
+        this.publisher = publisher;
     }
     public String getProfile_pic() {
         return profile_pic;
@@ -63,5 +64,11 @@ public class UserRegistrationRequest {
     }
     public void setSavedRecipes(List<String> savedRecipes) {
         this.savedRecipes = savedRecipes;
+    }
+    public List<String> getCreatedRecipes() {
+        return createdRecipes;
+    }
+    public void setCreatedRecipes(List<String> createdRecipes) {
+        this.createdRecipes = createdRecipes;
     }
 }

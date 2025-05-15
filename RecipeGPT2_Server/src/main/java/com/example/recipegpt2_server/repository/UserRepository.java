@@ -25,13 +25,14 @@ public class UserRepository {
         userData.put("email", user.getEmail());
         userData.put("username", user.getUsernameField());
         userData.put("password", user.getPassword());
-        userData.put("admin", user.isAdmin());
+        userData.put("publisher", user.isPublisher());
         
         // Always store these fields, even if empty
         userData.put("profile_pic", user.getProfile_pic());
         userData.put("bio", user.getBio());
         userData.put("preferences", user.getPreferences());
         userData.put("savedRecipes", user.getSavedRecipes());
+        userData.put("createdRecipes", user.getCreatedRecipes());
         
         // If user doesn't have an ID, generate one from email
         if (user.getId() == null || user.getId().isEmpty()) {
@@ -64,7 +65,7 @@ public class UserRepository {
             user.setEmail(doc.getString("email"));
             user.setUsername(doc.getString("username"));
             user.setPassword(doc.getString("password"));
-            user.setAdmin(doc.getBoolean("admin") != null ? doc.getBoolean("admin") : false);
+            user.setPublisher(doc.getBoolean("publisher") != null ? doc.getBoolean("publisher") : false);
             
             // Get profile_pic and bio
             user.setProfile_pic(doc.getString("profile_pic") != null ? doc.getString("profile_pic") : "");
@@ -83,6 +84,13 @@ public class UserRepository {
                 savedRecipes = (List<String>) doc.get("savedRecipes");
             }
             user.setSavedRecipes(savedRecipes);
+            
+            // Handle createdRecipes list
+            List<String> createdRecipes = new ArrayList<>();
+            if (doc.contains("createdRecipes") && doc.get("createdRecipes") != null) {
+                createdRecipes = (List<String>) doc.get("createdRecipes");
+            }
+            user.setCreatedRecipes(createdRecipes);
             
             return Optional.of(user);
         }

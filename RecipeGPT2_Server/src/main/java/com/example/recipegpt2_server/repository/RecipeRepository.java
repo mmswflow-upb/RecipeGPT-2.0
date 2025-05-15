@@ -71,7 +71,7 @@ public class RecipeRepository {
      * @param text Text to search for in title, ingredients, and instructions
      * @return List of matching recipes
      */
-    public List<Recipe> fetchSavedRecipes(String jwtToken, String category, String text) 
+    public List<Recipe> fetchCreatedAndSavedRecipes(String jwtToken, String category, String text) 
             throws ExecutionException, InterruptedException {
         // Extract user ID from JWT token
         String userEmail = jwtService.extractUsername(jwtToken);
@@ -83,34 +83,37 @@ public class RecipeRepository {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         
-        String userId = user.getId();
         List<String> savedRecipeIds = user.getSavedRecipes();
+        List<String> createdRecipeIds = user.getCreatedRecipes();
         
         Firestore firestore = FirestoreClient.getFirestore();
         List<Recipe> matchingRecipes = new ArrayList<>();
         
-        // First, get recipes created by the user
-        var userRecipesSnapshot = firestore.collection(RECIPES_COLLECTION)
-                .whereEqualTo("userId", userId)
-                .get()
-                .get();
-        
-        // Add user's recipes that match the filters
-        for (QueryDocumentSnapshot document : userRecipesSnapshot.getDocuments()) {
-            Recipe recipe = Recipe.fromMap(document.getData(), document.getId());
-            
-            // Check if recipe has the matching category
-            if (!hasMatchingCategory(recipe, category)) {
-                continue; // Skip this recipe if no matching category
-            }
-            
-            // If category matches, check if text matches any of title, ingredients, or instructions
-            if (matchesText(recipe, text)) {
-                matchingRecipes.add(recipe);
+        // Get recipes created by the user using createdRecipes attribute
+        if (createdRecipeIds != null && !createdRecipeIds.isEmpty()) {
+            for (String recipeId : createdRecipeIds) {
+                DocumentSnapshot document = firestore.collection(RECIPES_COLLECTION)
+                        .document(recipeId)
+                        .get()
+                        .get();
+                
+                if (document.exists()) {
+                    Recipe recipe = Recipe.fromMap(document.getData(), document.getId());
+                    
+                    // Check if recipe has the matching category
+                    if (!hasMatchingCategory(recipe, category)) {
+                        continue; // Skip this recipe if no matching category
+                    }
+                    
+                    // If category matches, check if text matches any of title, ingredients, or instructions
+                    if (matchesText(recipe, text)) {
+                        matchingRecipes.add(recipe);
+                    }
+                }
             }
         }
         
-        // Next, get recipes from the user's savedRecipes list
+        // Get recipes from the user's savedRecipes list
         if (savedRecipeIds != null && !savedRecipeIds.isEmpty()) {
             for (String recipeId : savedRecipeIds) {
                 DocumentSnapshot document = firestore.collection(RECIPES_COLLECTION)
