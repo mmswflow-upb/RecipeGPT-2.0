@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
+import defaultProfilePic from "../assets/profile.png";
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleLogout = async () => {
     try {
@@ -20,6 +23,18 @@ const Navbar = () => {
   const handleThemeToggle = () => {
     setTheme(theme === "light" ? "dark" : "light");
   };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <nav
@@ -71,16 +86,43 @@ const Navbar = () => {
             </div>
           )}
 
-          {/* Right: Theme/Logout */}
+          {/* Right: Theme/Profile */}
           <div className="flex items-center space-x-4">
             {isAuthenticated && (
-              <button
-                onClick={handleLogout}
-                className="hover:opacity-80 transition-opacity"
-                title="Logout"
-              >
-                <img src="/log-out.png" alt="Logout" className="w-6 h-6" />
-              </button>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="hover:opacity-80 transition-opacity focus:outline-none"
+                  title="Profile"
+                >
+                  <img
+                    src={user?.profile_pic || defaultProfilePic}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-[#E63946]"
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                {showDropdown && (
+                  <div
+                    className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 ${
+                      theme === "light"
+                        ? "bg-white border border-gray-200"
+                        : "bg-[#222] border border-gray-700"
+                    }`}
+                  >
+                    <button
+                      onClick={handleLogout}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-[#E63946] hover:text-white transition-colors ${
+                        theme === "light" ? "text-gray-700" : "text-gray-200"
+                      }`}
+                    >
+                      <i className="fa-solid fa-right-from-bracket mr-2"></i>
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
             <button
               onClick={handleThemeToggle}

@@ -40,11 +40,14 @@ const Login = () => {
       console.error("Login error:", err);
       // Extract error message from Axios error response
       const errorMessage =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
+        err.response?.data ||
         err.message ||
         "Failed to login. Please try again.";
-      setError(errorMessage);
+      setError(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : errorMessage.toString()
+      );
     } finally {
       setLoading(false);
     }
