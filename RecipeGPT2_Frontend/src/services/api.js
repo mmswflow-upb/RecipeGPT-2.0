@@ -46,12 +46,12 @@ export const authService = {
     return response.data;
   },
 
-  register: async (email, password, displayName, isAdmin) => {
+  register: async (email, password, username, publisher) => {
     const response = await api.post("/api/auth/register", {
       email,
       password,
-      displayName,
-      isAdmin,
+      username,
+      publisher,
     });
     const { idToken, ...userData } = response.data;
 

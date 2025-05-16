@@ -50,9 +50,9 @@ const Register = () => {
 
     try {
       await register(
-        formData.username,
         formData.email,
         formData.password,
+        formData.username,
         formData.isPublisher
       );
       navigate("/generate", { replace: true });

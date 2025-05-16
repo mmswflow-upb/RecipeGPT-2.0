@@ -85,7 +85,12 @@ const RecipeGenerator = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-[#E63946] text-white px-6 py-3 rounded-lg hover:bg-[#cc333f] transition duration-200 flex items-center space-x-2 disabled:opacity-50"
+                  className="bg-[#E63946] text-white px-6 py-3 rounded-lg hover:bg-[#cc333f] transition duration-200 flex items-center space-x-2 disabled:opacity-50 no-focus-ring"
+                  style={{
+                    outline: "none",
+                    border: "none",
+                    boxShadow: "none",
+                  }}
                 >
                   <img
                     src={magicWandIcon}
