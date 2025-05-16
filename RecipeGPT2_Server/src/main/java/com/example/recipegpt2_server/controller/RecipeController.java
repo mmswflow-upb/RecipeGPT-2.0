@@ -174,7 +174,8 @@ public class RecipeController {
                                                 "type", "array",
                                                 "items", Map.of("type", "string")),
                                         "estimatedCookingTime", Map.of("type", "integer"),
-                                        "servings", Map.of("type", "integer"))))));
+                                        "servings", Map.of("type", "integer")
+                                )))));
         return recipeSchema;
     }
 

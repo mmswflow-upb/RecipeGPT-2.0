@@ -81,3 +81,14 @@ input[type="checkbox"] {
     background-color: black;
   }
 }
+
+/* Remove background from number input arrows */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  background: transparent;
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
