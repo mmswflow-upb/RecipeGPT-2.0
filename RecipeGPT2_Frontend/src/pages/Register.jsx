@@ -17,6 +17,7 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
+    isPublisher: false,
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,7 +49,12 @@ const Register = () => {
     setLoading(true);
 
     try {
-      await register(formData.username, formData.email, formData.password);
+      await register(
+        formData.username,
+        formData.email,
+        formData.password,
+        formData.isPublisher
+      );
       navigate("/generate", { replace: true });
     } catch (err) {
       console.error("Registration error:", err);
@@ -203,6 +209,21 @@ const Register = () => {
                     {showConfirmPassword ? "Hide" : "Show"}
                   </button>
                 </div>
+              </div>
+
+              <div className="flex items-center">
+                <ThemedCheckbox
+                  id="isPublisher"
+                  name="isPublisher"
+                  checked={formData.isPublisher}
+                  onChange={handleChange}
+                />
+                <label
+                  htmlFor="isPublisher"
+                  className="ml-2 block text-sm text-[#6C757D]"
+                >
+                  I want to be a recipe publisher
+                </label>
               </div>
 
               <div className="flex items-center">

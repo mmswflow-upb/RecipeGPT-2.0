@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import defaultProfilePic from "../assets/profile.png";
+import settingsIcon from "../assets/settings.png";
+import logoutIcon from "../assets/logout.png";
 
 const ProfileButton = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -51,8 +53,8 @@ const ProfileButton = () => {
         <img
           src={user?.profile_pic || defaultProfilePic}
           alt="Profile"
-          className={`w-6 h-6 rounded-full object-cover bg-transparent ${
-            theme === "light" ? "filter-none" : "brightness-0 invert"
+          className={`w-6 h-6 object-contain rounded-full ${
+            theme === "light" ? "" : "brightness-0 invert"
           }`}
         />
         <span>Profile</span>
@@ -73,8 +75,16 @@ const ProfileButton = () => {
               theme === "light" ? "text-gray-700" : "text-gray-200"
             }`}
           >
-            <i className="fa-solid fa-gear mr-2"></i>
-            Settings
+            <div className="flex items-center space-x-2">
+              <img
+                src={settingsIcon}
+                alt="Settings"
+                className={`w-4 h-4 object-contain ${
+                  theme === "light" ? "" : "brightness-0 invert"
+                }`}
+              />
+              <span>Settings</span>
+            </div>
           </button>
           <div
             className={`h-px my-1 ${
@@ -87,8 +97,16 @@ const ProfileButton = () => {
               theme === "light" ? "text-gray-700" : "text-gray-200"
             }`}
           >
-            <i className="fa-solid fa-right-from-bracket mr-2"></i>
-            Logout
+            <div className="flex items-center space-x-2">
+              <img
+                src={logoutIcon}
+                alt="Logout"
+                className={`w-4 h-4 object-contain ${
+                  theme === "light" ? "" : "brightness-0 invert"
+                }`}
+              />
+              <span>Logout</span>
+            </div>
           </button>
         </div>
       )}

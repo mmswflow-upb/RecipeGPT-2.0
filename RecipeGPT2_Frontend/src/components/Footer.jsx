@@ -1,5 +1,10 @@
 import React from "react";
 import { useTheme } from "../contexts/ThemeContext";
+import twitterIcon from "../assets/twitter.png";
+import facebookIcon from "../assets/facebook.png";
+import instagramIcon from "../assets/instagram.png";
+import tiktokIcon from "../assets/tiktok.png";
+import SocialIcon from "./SocialIcon";
 
 const Footer = () => {
   const { theme } = useTheme();
@@ -71,15 +76,26 @@ const Footer = () => {
           <div className="flex flex-col items-start mx-auto">
             <h3 className="text-sm font-semibold mb-4">Follow Us</h3>
             <div className="flex space-x-4">
-              <span className="text-[#6C757D] hover:text-[#E63946] cursor-pointer">
-                <i className="fa-brands fa-twitter text-xl"></i>
-              </span>
-              <span className="text-[#6C757D] hover:text-[#E63946] cursor-pointer">
-                <i className="fa-brands fa-facebook text-xl"></i>
-              </span>
-              <span className="text-[#6C757D] hover:text-[#E63946] cursor-pointer">
-                <i className="fa-brands fa-instagram text-xl"></i>
-              </span>
+              <SocialIcon
+                icon={twitterIcon}
+                link="https://twitter.com/RecipeGPT"
+                alt="Twitter"
+              />
+              <SocialIcon
+                icon={facebookIcon}
+                link="https://facebook.com/RecipeGPT"
+                alt="Facebook"
+              />
+              <SocialIcon
+                icon={instagramIcon}
+                link="https://instagram.com/RecipeGPT"
+                alt="Instagram"
+              />
+              <SocialIcon
+                icon={tiktokIcon}
+                link="https://tiktok.com/@RecipeGPT"
+                alt="TikTok"
+              />
             </div>
           </div>
         </div>

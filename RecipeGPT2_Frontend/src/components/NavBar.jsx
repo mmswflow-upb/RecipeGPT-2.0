@@ -7,6 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 import BlogButton from "./BlogButton";
 import SavedRecipesButton from "./SavedRecipesButton";
 import GenerateRecipeButton from "./GenerateRecipeButton";
+import forkAndKnifeIcon from "../assets/fork-and-knife.png";
 
 const NavBar = () => {
   const { isAuthenticated } = useAuth();
@@ -28,12 +29,12 @@ const NavBar = () => {
               to={isAuthenticated ? "/generate" : "/"}
               className="flex items-center space-x-2 cursor-pointer"
             >
-              <i
-                className={`fa-solid fa-utensils text-2xl ${
-                  theme === "light" ? "text-[#E63946]" : "text-[#E63946]"
-                }`}
-              ></i>
-              <span className="text-xl font-bold">RecipeGPT</span>
+              <img
+                src={forkAndKnifeIcon}
+                alt="RecipeGPT"
+                className="w-8 h-8 object-contain [filter:invert(24%)_sepia(98%)_saturate(2472%)_hue-rotate(337deg)_brightness(101%)_contrast(97%)]"
+              />
+              <span className="text-2xl font-bold">RecipeGPT</span>
             </Link>
 
             {isAuthenticated && (

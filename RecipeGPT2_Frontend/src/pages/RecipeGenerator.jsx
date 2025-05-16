@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import Alert from "../components/Alert";
 import PageLayout from "../components/PageLayout";
+import magicWandIcon from "../assets/magic-wand.png";
 
 const RecipeGenerator = () => {
   const navigate = useNavigate();
@@ -86,7 +87,11 @@ const RecipeGenerator = () => {
                   disabled={loading}
                   className="bg-[#E63946] text-white px-6 py-3 rounded-lg hover:bg-[#cc333f] transition duration-200 flex items-center space-x-2 disabled:opacity-50"
                 >
-                  <i className="fa-solid fa-wand-magic-sparkles"></i>
+                  <img
+                    src={magicWandIcon}
+                    alt="Generate"
+                    className="w-5 h-5 object-contain brightness-0 invert"
+                  />
                   <span>{loading ? "Generating..." : "Generate"}</span>
                 </button>
               </div>
