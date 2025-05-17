@@ -129,4 +129,35 @@ export const recipeService = {
   },
 };
 
+const API_BASE_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:8080";
+
+/**
+ * Generate recipes based on a query
+ * @param {string} query - The recipe query
+ * @param {number} count - Number of recipes to generate
+ * @returns {Promise<{recipes: Array, batchId: string}>}
+ */
+export const generateRecipes = async (query, count) => {
+  const params = new URLSearchParams({
+    recipeQuery: query,
+    numberOfRecipes: count,
+  });
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/getRecipes?${params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to generate recipes");
+  }
+
+  return response.json();
+};
+
 export default api;

@@ -8,7 +8,6 @@ import {
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { RecipeBatchProvider } from "./contexts/RecipeBatchContext";
-import { SocketProvider } from "./contexts/SocketContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import RecipeGenerator from "./pages/RecipeGenerator";
@@ -21,21 +20,19 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <RecipeBatchProvider>
-            <SocketProvider>
-              <Routes>
-                <Route path="/" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route
-                  path="/generate"
-                  element={
-                    <ProtectedRoute>
-                      <RecipeGenerator />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </SocketProvider>
+            <Routes>
+              <Route path="/" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/generate"
+                element={
+                  <ProtectedRoute>
+                    <RecipeGenerator />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </RecipeBatchProvider>
         </AuthProvider>
       </ThemeProvider>

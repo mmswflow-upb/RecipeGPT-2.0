@@ -3,28 +3,28 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import Alert from "../components/Alert";
+import SuccessAlert from "../components/SuccessAlert";
 import PageLayout from "../components/PageLayout";
 import magicWandIcon from "../assets/logos/magic-wand.png";
 import RecipeCard from "../components/RecipeCard";
 import { useRecipeBatch } from "../contexts/RecipeBatchContext";
-import { useSocket } from "../contexts/SocketContext";
 import recipeIcon from "../assets/logos/recipe.png";
+import { generateRecipes } from "../services/api";
 
 const RecipeGenerator = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { theme } = useTheme();
-  const { batchId, setBatchId, recipes, setRecipes } = useRecipeBatch();
-  const { connect, send, subscribe, disconnect } = useSocket();
+  const { recipes, setRecipes } = useRecipeBatch();
   const [prompt, setPrompt] = useState("");
   const [numRecipes, setNumRecipes] = useState(2);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState([]);
-  const [socketConnected, setSocketConnected] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [inputError, setInputError] = useState("");
   const [numRecipesError, setNumRecipesError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const validateForm = () => {
     let isValid = true;
@@ -60,37 +60,15 @@ const RecipeGenerator = () => {
     setSaveMessage("");
     setSelected([]);
     setRecipes([]);
-    setBatchId(null);
-    disconnect();
-    setSocketConnected(false);
 
     try {
-      const params = new URLSearchParams({
-        recipeQuery: prompt,
-        numberOfRecipes: numRecipes,
-      });
-      const response = await fetch(
-        `http://localhost:8080/api/getRecipes?${params.toString()}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      if (!response.ok) throw new Error("Failed to generate recipes");
-      const data = await response.json();
+      // Use the API service to generate recipes
+      const data = await generateRecipes(prompt, numRecipes);
       setRecipes(data.recipes);
-      setBatchId(data.batchId);
-      // Connect socket after receiving recipes
-      connect(
-        () => {
-          setSocketConnected(true);
-          subscribe("/user/queue/recipesSaved", (msg) => {
-            setSaveMessage(msg.body);
-          });
-        },
-        (err) => setError("WebSocket error: " + err)
+      // Select all recipes by default
+      setSelected(data.recipes.map((_, idx) => idx));
+      setSaveMessage(
+        "Recipes generated successfully! Select which ones to keep."
       );
     } catch (err) {
       setError(err.message || "Failed to generate recipes");
@@ -105,23 +83,48 @@ const RecipeGenerator = () => {
     );
   };
 
-  const handleSaveSelection = () => {
-    if (!batchId || !user) return;
-    send("/app/saveRecipes", {
-      batchId,
-      selectedIndices: selected,
-      userId: user.id,
-      image: "", // or provide an image if needed
-    });
-  };
+  const handleSaveSelection = async () => {
+    setSaving(true);
+    setError(null);
 
-  const handleNumRecipesChange = (e) => {
-    const value = Number(e.target.value);
-    setNumRecipes(value);
-    if (value <= 0) {
-      setNumRecipesError("Number of recipes must be greater than 0");
-    } else {
-      setNumRecipesError("");
+    try {
+      // Get the IDs of recipes to delete (unselected ones)
+      const recipesToDelete = recipes
+        .filter((_, idx) => !selected.includes(idx))
+        .map((recipe) => recipe.id)
+        .filter((id) => id); // Filter out any null or undefined IDs
+
+      // Only send delete request if there are recipes to delete
+      if (recipesToDelete.length > 0) {
+        const response = await fetch(
+          `${
+            import.meta.env.VITE_SERVER_URL || "http://localhost:8080"
+          }/api/recipes/bulk-delete`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ recipeIds: recipesToDelete }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to delete recipes");
+        }
+      }
+
+      // Clear all recipe-related state
+      setRecipes([]);
+      setSelected([]);
+      setPrompt("");
+      setNumRecipes(2);
+      setSaveMessage("Recipes saved successfully!");
+    } catch (err) {
+      setError(err.message || "Failed to save recipes");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -156,7 +159,7 @@ const RecipeGenerator = () => {
                       value={prompt}
                       onChange={(e) => {
                         setPrompt(e.target.value);
-                        setInputError(""); // Clear error when user types
+                        setInputError("");
                       }}
                       className={`w-full px-4 py-3 border ${
                         theme === "light"
@@ -179,7 +182,17 @@ const RecipeGenerator = () => {
                         min={1}
                         max={5}
                         value={numRecipes}
-                        onChange={handleNumRecipesChange}
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+                          setNumRecipes(value);
+                          if (value <= 0) {
+                            setNumRecipesError(
+                              "Number of recipes must be greater than 0"
+                            );
+                          } else {
+                            setNumRecipesError("");
+                          }
+                        }}
                         className={`w-20 pl-10 py-3 border rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none ${
                           theme === "light"
                             ? "border-gray-300 bg-white text-black"
@@ -225,8 +238,7 @@ const RecipeGenerator = () => {
           <Alert type="error" message={error} onClose={() => setError(null)} />
         )}
         {saveMessage && (
-          <Alert
-            type="success"
+          <SuccessAlert
             message={saveMessage}
             onClose={() => setSaveMessage("")}
           />
@@ -235,7 +247,7 @@ const RecipeGenerator = () => {
         {recipes.length > 0 && (
           <div>
             <h2 className="text-xl font-semibold mb-4">
-              Select recipes to save:
+              Select recipes to keep:
             </h2>
             <div
               className={`grid gap-8 ${
@@ -249,22 +261,26 @@ const RecipeGenerator = () => {
                   key={idx}
                   recipe={recipe}
                   selected={selected.includes(idx)}
-                  onSelect={handleSelect}
+                  onSelect={() => handleSelect(idx)}
                   index={idx}
                 />
               ))}
             </div>
             <div className="mt-6 text-center">
               <button
+                onClick={handleSaveSelection}
+                disabled={saving}
                 className={`px-6 py-3 rounded-lg transition duration-200 focus:outline-none border-none ${
                   selected.length === 0
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    ? "bg-red-600 text-white hover:bg-red-700"
                     : "bg-[#E63946] text-white hover:bg-[#cc333f]"
                 }`}
-                disabled={selected.length === 0}
-                onClick={handleSaveSelection}
               >
-                Save Selected Recipes
+                {saving
+                  ? "Saving..."
+                  : selected.length === 0
+                  ? "Delete All Recipes"
+                  : `Keep Selected Recipe${selected.length !== 1 ? "s" : ""}`}
               </button>
             </div>
           </div>

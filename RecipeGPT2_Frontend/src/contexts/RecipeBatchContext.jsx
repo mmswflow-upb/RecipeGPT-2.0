@@ -3,13 +3,10 @@ import React, { createContext, useContext, useState } from "react";
 const RecipeBatchContext = createContext();
 
 export const RecipeBatchProvider = ({ children }) => {
-  const [batchId, setBatchId] = useState(null);
   const [recipes, setRecipes] = useState([]);
 
   return (
-    <RecipeBatchContext.Provider
-      value={{ batchId, setBatchId, recipes, setRecipes }}
-    >
+    <RecipeBatchContext.Provider value={{ recipes, setRecipes }}>
       {children}
     </RecipeBatchContext.Provider>
   );

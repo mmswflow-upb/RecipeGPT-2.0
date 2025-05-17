@@ -13,12 +13,11 @@ public class WebSocketDebugInterceptor implements WebSocketMessageBrokerConfigur
     @Override
     public void configureClientInboundChannel(ChannelRegistration reg) {
         reg.interceptors(new ChannelInterceptor() {
-            @Override public Message<?> preSend(Message<?> msg, MessageChannel ch) {
+            @Override
+            public Message<?> preSend(Message<?> msg, MessageChannel ch) {
                 System.out.println("📥 STOMP inbound: " + msg);
                 return msg;
             }
         });
     }
 }
-
-

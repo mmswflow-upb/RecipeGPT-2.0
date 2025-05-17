@@ -1,6 +1,6 @@
 import React from "react";
 import { useTheme } from "../contexts/ThemeContext";
-import NavBar from "../components/Navbar";
+import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 
 const PageLayout = ({ children }) => {
