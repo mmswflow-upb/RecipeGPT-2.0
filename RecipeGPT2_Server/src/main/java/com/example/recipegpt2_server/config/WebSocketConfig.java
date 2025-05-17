@@ -10,14 +10,22 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/queue");      // where the broker will publish
+        config.enableSimpleBroker("/queue"); // where the broker will publish
         config.setApplicationDestinationPrefixes("/app"); // where you send
         config.setUserDestinationPrefix("/user"); // enables /user/queue/…
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // NO SockJS – plain WebSocket so CLI tools work
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
+        registry.addEndpoint("/ws")
+                .setAllowedOrigins("http://localhost:5173") // Your frontend URL
+                .withSockJS();
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration) {
+        registration.setMessageSizeLimit(128 * 1024) // 128KB
+                .setSendBufferSizeLimit(512 * 1024) // 512KB
+                .setSendTimeLimit(20000); // 20 seconds
     }
 }
