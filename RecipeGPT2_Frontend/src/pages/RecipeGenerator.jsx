@@ -206,7 +206,7 @@ const RecipeGenerator = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="bg-[#E63946] text-white px-6 py-3 rounded-lg hover:bg-[#cc333f] transition duration-200 flex items-center space-x-2 disabled:opacity-50 focus:outline-none"
+                    className="bg-[#E63946] text-white px-6 py-3 rounded-lg transition duration-200 flex items-center space-x-2 disabled:opacity-50 focus:outline-none border-none hover:bg-[#cc333f]"
                   >
                     <img
                       src={magicWandIcon}
@@ -237,7 +237,13 @@ const RecipeGenerator = () => {
             <h2 className="text-xl font-semibold mb-4">
               Select recipes to save:
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div
+              className={`grid gap-8 ${
+                recipes.length === 1
+                  ? "grid-cols-1 max-w-2xl mx-auto"
+                  : "grid-cols-1 md:grid-cols-2"
+              }`}
+            >
               {recipes.map((recipe, idx) => (
                 <RecipeCard
                   key={idx}
@@ -248,13 +254,19 @@ const RecipeGenerator = () => {
                 />
               ))}
             </div>
-            <button
-              className="mt-6 bg-[#E63946] text-white px-6 py-3 rounded-lg hover:bg-[#cc333f] transition duration-200 disabled:opacity-50"
-              disabled={!socketConnected || selected.length === 0}
-              onClick={handleSaveSelection}
-            >
-              Save Selected Recipes
-            </button>
+            <div className="mt-6 text-center">
+              <button
+                className={`px-6 py-3 rounded-lg transition duration-200 focus:outline-none border-none ${
+                  selected.length === 0
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-[#E63946] text-white hover:bg-[#cc333f]"
+                }`}
+                disabled={selected.length === 0}
+                onClick={handleSaveSelection}
+              >
+                Save Selected Recipes
+              </button>
+            </div>
           </div>
         )}
       </div>

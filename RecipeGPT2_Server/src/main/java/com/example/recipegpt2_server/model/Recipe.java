@@ -24,6 +24,7 @@ public class Recipe {
     
     // Basic recipe information
     private String title;
+    private String description;
     private List<String> categories;
     private List<String> ingredients;
     private List<String> instructions;
@@ -47,6 +48,7 @@ public class Recipe {
         
         // Basic recipe information
         map.put("title", title);
+        map.put("description", description);
         map.put("categories", categories != null ? categories : new ArrayList<>());
         map.put("ingredients", ingredients != null ? ingredients : new ArrayList<>());
         map.put("instructions", instructions != null ? instructions : new ArrayList<>());
@@ -78,6 +80,7 @@ public class Recipe {
         
         // Basic recipe information
         recipe.setTitle((String) map.getOrDefault("title", ""));
+        recipe.setDescription((String) map.getOrDefault("description", ""));
         recipe.setCategories((List<String>) map.getOrDefault("categories", new ArrayList<>()));
         recipe.setIngredients((List<String>) map.getOrDefault("ingredients", new ArrayList<>()));
         recipe.setInstructions((List<String>) map.getOrDefault("instructions", new ArrayList<>()));

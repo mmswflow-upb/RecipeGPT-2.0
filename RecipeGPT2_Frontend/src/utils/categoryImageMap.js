@@ -1,52 +1,54 @@
+const BASE_PATH = "/assets/default-recipes-images";
+
 export const getDefaultImage = (categories) => {
   if (!categories || categories.length === 0)
     return "https://via.placeholder.com/400x300";
   const category = categories[0].toLowerCase();
   switch (category) {
     case "asian cooking":
-      return "/assets/default-recipes-images/asian.png";
+      return `${BASE_PATH}/asian.png`;
     case "mediterranean cooking":
-      return "/assets/default-recipes-images/mediterranean.png";
+      return `${BASE_PATH}/mediterranean.png`;
     case "latin american cooking":
-      return "/assets/default-recipes-images/latin-american.png";
+      return `${BASE_PATH}/latin-american.png`;
     case "middle eastern & north african cooking":
-      return "/assets/default-recipes-images/middle-eastern-north-african.png";
+      return `${BASE_PATH}/middle-eastern-north-african.png`;
     case "indian & south asian cooking":
-      return "/assets/default-recipes-images/indian-south-asian.png";
+      return `${BASE_PATH}/indian-south-asian.png`;
     case "european continental cooking":
-      return "/assets/default-recipes-images/european.png";
+      return `${BASE_PATH}/european.png`;
     case "african cooking":
-      return "/assets/default-recipes-images/african.png";
+      return `${BASE_PATH}/african.png`;
     case "american cooking":
-      return "/assets/default-recipes-images/american.png";
+      return `${BASE_PATH}/american.png`;
     case "vegetarian & plant-based":
-      return "/assets/default-recipes-images/vegeterian-plant-based.png";
+      return `${BASE_PATH}/vegeterian-plant-based.png`;
     case "vegan":
-      return "/assets/default-recipes-images/vegan.png";
+      return `${BASE_PATH}/vegan.png`;
     case "gluten-free":
-      return "/assets/default-recipes-images/gluten-free.png";
+      return `${BASE_PATH}/gluten-free.png`;
     case "low-carb & keto":
-      return "/assets/default-recipes-images/low-carb-keto.png";
+      return `${BASE_PATH}/low-carb-keto.png`;
     case "paleo & whole30":
-      return "/assets/default-recipes-images/paleo-whole30.png";
+      return `${BASE_PATH}/paleo-whole30.png`;
     case "seafood & pescatarian":
-      return "/assets/default-recipes-images/seafood-pescatarian.png";
+      return `${BASE_PATH}/seafood-pescatarian.png`;
     case "desserts & baking":
-      return "/assets/default-recipes-images/deserts-baking.png";
+      return `${BASE_PATH}/deserts-baking.png`;
     case "breakfast & brunch":
-      return "/assets/default-recipes-images/breakfast-brunch.png";
+      return `${BASE_PATH}/breakfast-brunch.png`;
     case "street food & snacks":
-      return "/assets/default-recipes-images/streetfood-snacks.png";
+      return `${BASE_PATH}/streetfood-snacks.png`;
     case "soups & stews":
-      return "/assets/default-recipes-images/soups-stews.png";
+      return `${BASE_PATH}/soups-stews.png`;
     case "salads & grain bowls":
-      return "/assets/default-recipes-images/salads-grain-bowls.png";
+      return `${BASE_PATH}/salads-grain-bowls.png`;
     case "fusion & modernist":
-      return "/assets/default-recipes-images/fusion-modernist.png";
+      return `${BASE_PATH}/fusion-modernist.png`;
     case "halal":
-      return "/assets/default-recipes-images/halal.png";
+      return `${BASE_PATH}/halal.png`;
     case "beverages":
-      return "/assets/default-recipes-images/beverages.png";
+      return `${BASE_PATH}/beverages.png`;
     default:
       return "https://via.placeholder.com/400x300";
   }

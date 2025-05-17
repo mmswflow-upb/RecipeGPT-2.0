@@ -168,6 +168,7 @@ public class RecipeController {
                                 "type", "object",
                                 "properties", Map.of(
                                         "title", Map.of("type", "string"),
+                                        "description", Map.of("type", "string"),
                                         "categories", Map.of("type", "array", "items", Map.of("type", "string")),
                                         "ingredients", Map.of("type", "array", "items", Map.of("type", "string")),
                                         "instructions", Map.of(
