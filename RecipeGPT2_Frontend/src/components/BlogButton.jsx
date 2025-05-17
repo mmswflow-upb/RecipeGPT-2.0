@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
-import compassIcon from "../assets/compass.png";
+import compassIcon from "../assets/logos/compass.png";
 
 const BlogButton = () => {
   const { theme } = useTheme();

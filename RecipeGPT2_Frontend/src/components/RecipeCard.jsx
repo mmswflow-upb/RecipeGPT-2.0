@@ -1,40 +1,26 @@
 import React from "react";
+import { getDefaultImage } from "../utils/categoryImageMap";
 
 const RecipeCard = ({ recipe, selected, onSelect, index }) => {
   return (
     <div
       className={`rounded-lg shadow-lg p-4 border-2 transition-colors duration-150 ${
-        selected ? "border-[#E63946] bg-red-50" : "border-transparent bg-white"
+        selected
+          ? "border-[#E63946] bg-red-50 dark:bg-red-900"
+          : "border-transparent bg-white dark:bg-gray-800"
       }`}
       onClick={() => onSelect(index)}
       style={{ cursor: "pointer" }}
     >
-      <h2 className="text-xl font-bold mb-2">{recipe.title}</h2>
+      <h2 className="text-xl font-bold mb-2 dark:text-white">{recipe.title}</h2>
       <img
-        src={recipe.image || "https://via.placeholder.com/400x300"}
+        src={recipe.image || getDefaultImage(recipe.categories)}
         alt={recipe.title}
         className="w-full h-40 object-cover rounded mb-2"
       />
-      <div className="mb-2 text-sm text-gray-600">
-        Servings: {recipe.servings}
-      </div>
-      <div className="mb-2 text-sm text-gray-600">
-        Time: {recipe.estimatedCookingTime} min
-      </div>
-      <div className="mb-2 text-sm text-gray-600">
-        Categories: {recipe.categories?.join(", ")}
-      </div>
-      <div className="mb-2 text-sm text-gray-600">
-        Ingredients: {recipe.ingredients?.join(", ")}
-      </div>
-      <ol className="list-decimal ml-5 text-sm text-gray-700 mb-2">
-        {recipe.instructions?.map((step, i) => (
-          <li key={i}>{step}</li>
-        ))}
-      </ol>
       <div
         className={`mt-2 font-semibold ${
-          selected ? "text-[#E63946]" : "text-gray-400"
+          selected ? "text-[#E63946]" : "text-gray-400 dark:text-gray-300"
         }`}
       >
         {selected ? "Selected" : "Click to select"}

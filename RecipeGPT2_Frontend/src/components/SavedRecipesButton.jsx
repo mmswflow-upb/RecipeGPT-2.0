@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
-import recipeBookIcon from "../assets/recipe-book.png";
+import recipeBookIcon from "../assets/logos/recipe-book.png";
 
 const SavedRecipesButton = () => {
   const { theme } = useTheme();

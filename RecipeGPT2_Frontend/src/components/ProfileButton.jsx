@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
-import defaultProfilePic from "../assets/profile.png";
-import settingsIcon from "../assets/settings.png";
-import logoutIcon from "../assets/logout.png";
+import defaultProfilePic from "../assets/logos/profile.png";
+import settingsIcon from "../assets/logos/settings.png";
+import logoutIcon from "../assets/logos/logout.png";
 
 const ProfileButton = () => {
   const { user, logout, isAuthenticated } = useAuth();

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
-import starsIcon from "../assets/stars.png";
+import starsIcon from "../assets/logos/stars.png";
 
 const GenerateRecipeButton = () => {
   const { theme } = useTheme();

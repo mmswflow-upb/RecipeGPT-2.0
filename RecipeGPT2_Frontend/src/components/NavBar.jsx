@@ -7,7 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 import BlogButton from "./BlogButton";
 import SavedRecipesButton from "./SavedRecipesButton";
 import GenerateRecipeButton from "./GenerateRecipeButton";
-import forkAndKnifeIcon from "../assets/fork-and-knife.png";
+import forkAndKnifeIcon from "../assets/logos/fork-and-knife.png";
 
 const NavBar = () => {
   const { isAuthenticated } = useAuth();

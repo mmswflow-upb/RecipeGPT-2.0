@@ -1,9 +1,9 @@
 import React from "react";
 import { useTheme } from "../contexts/ThemeContext";
-import twitterIcon from "../assets/twitter.png";
-import facebookIcon from "../assets/facebook.png";
-import instagramIcon from "../assets/instagram.png";
-import tiktokIcon from "../assets/tiktok.png";
+import twitterIcon from "../assets/logos/twitter.png";
+import facebookIcon from "../assets/logos/facebook.png";
+import instagramIcon from "../assets/logos/instagram.png";
+import tiktokIcon from "../assets/logos/tiktok.png";
 import SocialIcon from "./SocialIcon";
 
 const Footer = () => {

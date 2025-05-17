@@ -4,11 +4,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import Alert from "../components/Alert";
 import PageLayout from "../components/PageLayout";
-import magicWandIcon from "../assets/magic-wand.png";
+import magicWandIcon from "../assets/logos/magic-wand.png";
 import RecipeCard from "../components/RecipeCard";
 import { useRecipeBatch } from "../contexts/RecipeBatchContext";
 import { useSocket } from "../contexts/SocketContext";
-import recipeIcon from "../assets/recipe.png";
+import recipeIcon from "../assets/logos/recipe.png";
 
 const RecipeGenerator = () => {
   const navigate = useNavigate();
