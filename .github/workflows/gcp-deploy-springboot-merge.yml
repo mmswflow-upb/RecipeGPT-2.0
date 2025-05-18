@@ -9,13 +9,14 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
 
+    # ← picks up both your env-scoped secrets and variables
     environment: SpringBoot-Server
 
     steps:
       # 1️⃣ Checkout your code
       - uses: actions/checkout@v4
 
-      # 2️⃣ Inject secrets into src/main/resources
+      # 2️⃣ Inject your three secrets into src/main/resources
       - name: Write application.properties & service accounts
         working-directory: ./RecipeGPT2_Server
         env:
@@ -30,26 +31,39 @@ jobs:
                                           > src/main/resources/gcp-springboot-deployment-sa-key.json
           chmod 600 src/main/resources/*
 
-      # 3️⃣ Authenticate to GCP using your deployer SA
+      # 3️⃣ Authenticate to GCP using your deployer SA key (only credentials_json!)
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY }}
 
-      # 4️⃣ Install gcloud SDK
+      # 4️⃣ Set up Google Cloud SDK
       - name: Set up gcloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
 
-      # 5️⃣ Build the Spring Boot JAR
+      # 5️⃣ Configure Docker to use gcloud as a credential helper
+      - name: Configure Docker auth
+        run: |
+          gcloud auth configure-docker "${{ vars.GCP_LOCATION }}-docker.pkg.dev"
+
+      # 6️⃣ (Optional) Create a credentials folder if you need external JSON at runtime
+      - name: Create Firebase credentials folder
+        working-directory: ./RecipeGPT2_Server
+        run: |
+          mkdir -p credentials
+          echo "${{ secrets.FIREBASE_ADMIN_SA }}" > credentials/firebase-admin.json
+          chmod 644 credentials/firebase-admin.json
+
+      # 7️⃣ Build the Spring Boot JAR
       - name: Build JAR with Maven
         working-directory: ./RecipeGPT2_Server
         run: |
           chmod +x mvnw
           ./mvnw clean package -DskipTests
 
-      # 6️⃣ Build & push Docker image
+      # 8️⃣ Build & push Docker image
       - name: Build and push Docker image
         working-directory: ./RecipeGPT2_Server
         run: |
@@ -58,12 +72,14 @@ jobs:
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
 
-      # 7️⃣ Deploy to Cloud Run
+      # 9️⃣ Deploy to Cloud Run (with project, service-account & env-vars)
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy springboot-service \
             --image "$IMAGE_URI" \
             --platform managed \
             --region "${{ vars.GCP_LOCATION }}" \
-            --port 8080 \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --service-account "${{ secrets.GCP_SPRINGBOOT_DEPLOYMENT_SA_NAME }}" \
+            --set-env-vars "GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/firebase-admin.json" \
             --allow-unauthenticated
