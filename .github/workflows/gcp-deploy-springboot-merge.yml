@@ -64,7 +64,7 @@ jobs:
       - name: Build and push Docker image
         working-directory: ./RecipeGPT2_Server
         run: |
-          IMAGE_URI="${{ vars.GCP_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.CONTAINER_REPOSITORY }}/springboot:${{ github.sha }}"
+          IMAGE_URI="${{ vars.GCP_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ secrets.CONTAINER_REPOSITORY }}/springboot:${{ github.sha }}"
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
 
