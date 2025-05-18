@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
@@ -15,12 +15,18 @@ const RecipeGenerator = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { theme } = useTheme();
-  const { recipes, setRecipes } = useRecipeBatch();
+  const {
+    recipes,
+    setRecipes,
+    selectedRecipes,
+    toggleRecipeSelection,
+    selectAllRecipes,
+    clearRecipes,
+  } = useRecipeBatch();
   const [prompt, setPrompt] = useState("");
   const [numRecipes, setNumRecipes] = useState(2);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selected, setSelected] = useState([]);
   const [saveMessage, setSaveMessage] = useState("");
   const [inputError, setInputError] = useState("");
   const [numRecipesError, setNumRecipesError] = useState("");
@@ -58,15 +64,14 @@ const RecipeGenerator = () => {
     setLoading(true);
     setError(null);
     setSaveMessage("");
-    setSelected([]);
-    setRecipes([]);
+    clearRecipes();
 
     try {
       // Use the API service to generate recipes
       const data = await generateRecipes(prompt, numRecipes);
       setRecipes(data.recipes);
       // Select all recipes by default
-      setSelected(data.recipes.map((_, idx) => idx));
+      selectAllRecipes();
       setSaveMessage(
         "Recipes generated successfully! Select which ones to keep."
       );
@@ -77,12 +82,6 @@ const RecipeGenerator = () => {
     }
   };
 
-  const handleSelect = (idx) => {
-    setSelected((prev) =>
-      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
-    );
-  };
-
   const handleSaveSelection = async () => {
     setSaving(true);
     setError(null);
@@ -90,7 +89,7 @@ const RecipeGenerator = () => {
     try {
       // Get the IDs of recipes to delete (unselected ones)
       const recipesToDelete = recipes
-        .filter((_, idx) => !selected.includes(idx))
+        .filter((_, idx) => !selectedRecipes.includes(idx))
         .map((recipe) => recipe.id)
         .filter((id) => id); // Filter out any null or undefined IDs
 
@@ -116,12 +115,11 @@ const RecipeGenerator = () => {
       }
 
       // Clear all recipe-related state
-      setRecipes([]);
-      setSelected([]);
+      clearRecipes();
       setPrompt("");
       setNumRecipes(2);
       setSaveMessage(
-        selected.length === 0
+        selectedRecipes.length === 0
           ? "All recipes have been deleted!"
           : "Recipes saved successfully!"
       );
@@ -264,10 +262,68 @@ const RecipeGenerator = () => {
                 <RecipeCard
                   key={idx}
                   recipe={recipe}
-                  selected={selected.includes(idx)}
-                  onSelect={() => handleSelect(idx)}
+                  selected={selectedRecipes.includes(idx)}
+                  onSelect={() => toggleRecipeSelection(idx)}
                   index={idx}
-                />
+                >
+                  <div className="flex flex-col space-y-4 mb-6">
+                    <div className="flex items-center space-x-6">
+                      {recipe.estimatedPrepTime > 0 && (
+                        <span className="flex items-center space-x-2">
+                          <span
+                            className={
+                              theme === "light"
+                                ? "text-gray-600"
+                                : "text-gray-300"
+                            }
+                          >
+                            Prep: {recipe.estimatedPrepTime} mins
+                          </span>
+                        </span>
+                      )}
+                      {recipe.estimatedCookingTime > 0 && (
+                        <span className="flex items-center space-x-2">
+                          <span
+                            className={
+                              theme === "light"
+                                ? "text-gray-600"
+                                : "text-gray-300"
+                            }
+                          >
+                            Cook: {recipe.estimatedCookingTime} mins
+                          </span>
+                        </span>
+                      )}
+                      <span className="flex items-center space-x-2">
+                        <span
+                          className={
+                            theme === "light"
+                              ? "text-gray-600"
+                              : "text-gray-300"
+                          }
+                        >
+                          {recipe.servings || "2"} servings
+                        </span>
+                      </span>
+                    </div>
+                    {recipe.categories && recipe.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {recipe.categories.map((category, idx) => (
+                          <span
+                            key={idx}
+                            className={`text-sm px-3 py-1 rounded-full ${
+                              theme === "light"
+                                ? "bg-gray-100 text-gray-600"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                          >
+                            {category}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </RecipeCard>
               ))}
             </div>
             <div className="mt-6 text-center">
@@ -275,16 +331,18 @@ const RecipeGenerator = () => {
                 onClick={handleSaveSelection}
                 disabled={saving}
                 className={`px-6 py-3 rounded-lg transition duration-200 focus:outline-none border-none ${
-                  selected.length === 0
+                  selectedRecipes.length === 0
                     ? "bg-red-600 text-white hover:bg-red-700"
                     : "bg-[#4CAF50] text-white hover:bg-[#45a049]"
                 }`}
               >
                 {saving
                   ? "Saving..."
-                  : selected.length === 0
+                  : selectedRecipes.length === 0
                   ? "Delete All Recipes"
-                  : `Keep Selected Recipe${selected.length !== 1 ? "s" : ""}`}
+                  : `Keep Selected Recipe${
+                      selectedRecipes.length !== 1 ? "s" : ""
+                    }`}
               </button>
             </div>
           </div>

@@ -6,6 +6,10 @@ import Alert from "../components/Alert";
 import { useAuth } from "../contexts/AuthContext";
 import { useRecipeBatch } from "../contexts/RecipeBatchContext";
 import { getDefaultImage } from "../utils/categoryImageMap";
+import clockIcon from "../assets/logos/clock.png";
+import cookingIcon from "../assets/logos/cooking.png";
+import servingIcon from "../assets/logos/serving.png";
+import copyingIcon from "../assets/logos/copying.png";
 
 const RecipeDetails = () => {
   const { id } = useParams();
@@ -36,8 +40,8 @@ const RecipeDetails = () => {
   const handleCopyRecipe = () => {
     const recipeText = `
 Recipe: ${recipe.title}
-Prep Time: ${recipe.prepTime || "10"} mins
-Cook Time: ${recipe.cookTime || "20"} mins
+Prep Time: ${recipe.estimatedPrepTime || "10"} mins
+Cook Time: ${recipe.estimatedCookingTime || "20"} mins
 Servings: ${recipe.servings || "2"}
 ${recipe.dietaryInfo ? `Dietary Info: ${recipe.dietaryInfo}` : ""}
 
@@ -87,21 +91,55 @@ ${recipe.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                 {recipe.title}
               </h1>
               <div
-                className={`flex items-center justify-between mb-6 ${
+                className={`flex flex-col space-y-4 mb-6 ${
                   theme === "dark" ? "text-gray-300" : "text-[#6C757D]"
                 }`}
               >
                 <div className="flex items-center space-x-6">
+                  {recipe.estimatedPrepTime > 0 && (
+                    <span className="flex items-center space-x-2">
+                      <img
+                        src={clockIcon}
+                        alt="Prep Time"
+                        className="w-5 h-5 object-contain"
+                        style={{
+                          filter:
+                            theme === "light"
+                              ? "brightness(0) saturate(100%) invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(90%)"
+                              : "brightness(0) invert(1)",
+                        }}
+                      />
+                      <span>Prep: {recipe.estimatedPrepTime} mins</span>
+                    </span>
+                  )}
+                  {recipe.estimatedCookingTime > 0 && (
+                    <span className="flex items-center space-x-2">
+                      <img
+                        src={cookingIcon}
+                        alt="Cook Time"
+                        className="w-5 h-5 object-contain"
+                        style={{
+                          filter:
+                            theme === "light"
+                              ? "brightness(0) saturate(100%) invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(90%)"
+                              : "brightness(0) invert(1)",
+                        }}
+                      />
+                      <span>Cook: {recipe.estimatedCookingTime} mins</span>
+                    </span>
+                  )}
                   <span className="flex items-center space-x-2">
-                    <i className="fa-regular fa-clock text-lg"></i>
-                    <span>Prep: {recipe.prepTime || "10"} mins</span>
-                  </span>
-                  <span className="flex items-center space-x-2">
-                    <i className="fa-solid fa-fire text-lg"></i>
-                    <span>Cook: {recipe.cookTime || "20"} mins</span>
-                  </span>
-                  <span className="flex items-center space-x-2">
-                    <i className="fa-solid fa-utensils text-lg"></i>
+                    <img
+                      src={servingIcon}
+                      alt="Servings"
+                      className="w-5 h-5 object-contain"
+                      style={{
+                        filter:
+                          theme === "light"
+                            ? "brightness(0) saturate(100%) invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(90%)"
+                            : "brightness(0) invert(1)",
+                      }}
+                    />
                     <span>{recipe.servings || "2"} servings</span>
                   </span>
                   {recipe.dietaryInfo && (
@@ -210,7 +248,11 @@ ${recipe.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                 onClick={handleCopyRecipe}
                 className="bg-[#4CAF50] text-white px-6 py-3 rounded-2xl hover:opacity-80 transition-all duration-200 flex items-center space-x-2 focus:outline-none border-none outline-none hover:border-none hover:outline-none"
               >
-                <i className="fa-solid fa-copy"></i>
+                <img
+                  src={copyingIcon}
+                  alt="Copy"
+                  className="w-5 h-5 object-contain brightness-0 invert"
+                />
                 <span>Copy Recipe Details</span>
               </button>
               {showCopyAlert && (
