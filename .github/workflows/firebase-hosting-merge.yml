@@ -1,0 +1,35 @@
+name: Deploy to Firebase Hosting on merge
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    # ← Add this so we pull secrets from your “React App Env” environment
+    environment: React-App
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies & build
+        working-directory: ./RecipeGPT2_Frontend
+        env:
+          # now this will resolve from the environment’s secrets
+          VITE_SERVER_URL: ${{ secrets.VITE_SERVER_URL }}
+        run: |
+          echo "VITE_SERVER_URL=${VITE_SERVER_URL}" > .env
+          npm ci
+          npm run build
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECIPEGPT_7D00C }}
+          channelId: live
+          projectId: recipegpt-7d00c
+          entryPoint: ./RecipeGPT2_Frontend

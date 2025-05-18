@@ -1,0 +1,41 @@
+name: Deploy to Firebase Hosting on PR
+
+on: pull_request
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  build_and_preview:
+    # only run on PRs from this repo
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+
+    # pull in your environment-scoped secrets
+    environment: React-App
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies & build
+        working-directory: ./RecipeGPT2_Frontend
+        env:
+          VITE_SERVER_URL: ${{ secrets.VITE_SERVER_URL }}
+        run: |
+          # inject the server URL
+          echo "VITE_SERVER_URL=${VITE_SERVER_URL}" > .env
+
+          npm ci
+          npm run build
+
+      - name: Deploy to Firebase Hosting preview
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RECIPEGPT_7D00C }}
+          projectId: recipegpt-7d00c
+          # deploy to a PR-specific preview channel
+          channelId: pr${{ github.event.pull_request.number }}
+          entryPoint: ./RecipeGPT2_Frontend
