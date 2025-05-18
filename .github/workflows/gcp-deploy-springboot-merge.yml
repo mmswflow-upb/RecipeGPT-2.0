@@ -51,16 +51,14 @@ jobs:
         run: |
           gcloud auth configure-docker "${{ vars.GCP_LOCATION }}-docker.pkg.dev"
 
-      - name: Set up Java & Maven
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 21
-          cache: maven
-
-      - name: Build JAR with Maven
+      # ─── use your checked-in Maven Wrapper ───
+      - name: Make Maven wrapper executable
         working-directory: ./RecipeGPT2_Server
-        run: mvn clean package -DskipTests
+        run: chmod +x mvnw
+
+      - name: Build JAR with Maven Wrapper
+        working-directory: ./RecipeGPT2_Server
+        run: ./mvnw clean package -DskipTests
 
       - name: Build and push Docker image
         working-directory: ./RecipeGPT2_Server
