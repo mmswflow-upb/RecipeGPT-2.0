@@ -56,5 +56,6 @@ application.yaml
 .env
 *.env
 serviceAccountKey.json
+firebase-sa-key.json
 gcp_springboot_deployment_sa_key.json
 stomp-test.html

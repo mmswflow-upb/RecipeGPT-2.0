@@ -15,7 +15,7 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
         InputStream serviceAccount =
-                getClass().getResourceAsStream("/serviceAccountKey.json");
+                getClass().getResourceAsStream("/firebase-sa-key.json");
 
         if (serviceAccount == null) {
             throw new IllegalStateException("serviceAccountKey.json not found in resources folder.");

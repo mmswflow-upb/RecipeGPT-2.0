@@ -26,7 +26,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # 5. Copy your Firebase credentials into the image (so GOOGLE_APPLICATION_CREDENTIALS works)
-COPY src/main/resources/firebase-admin.json /app/credentials/firebase-admin.json
+COPY src/main/resources/firebase-sa-key.json /app/credentials/firebase-admin.json
 
 # 6. Expose and launch
 ENV PORT=8081
