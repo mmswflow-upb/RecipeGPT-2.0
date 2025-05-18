@@ -9,14 +9,23 @@ const SuccessAlert = ({ message, onClose }) => {
       <div
         className={`${
           theme === "light" ? "bg-green-50" : "bg-green-900"
-        } border border-green-400 text-green-700 px-4 py-3 rounded relative flex items-center justify-between`}
+        } border border-green-400 px-4 py-3 rounded relative flex items-center justify-between`}
         role="alert"
       >
-        <span className="block sm:inline">{message}</span>
-        <button onClick={onClose} className="ml-4">
+        <span
+          className={`block sm:inline ${
+            theme === "light" ? "text-green-400" : "text-green-200"
+          }`}
+        >
+          {message}
+        </span>
+        <button
+          onClick={onClose}
+          className="ml-4 bg-transparent border-none p-0 hover:opacity-80 transition-opacity focus:outline-none"
+        >
           <svg
             className={`fill-current h-6 w-6 ${
-              theme === "light" ? "text-green-500" : "text-green-300"
+              theme === "light" ? "text-green-400" : "text-green-200"
             }`}
             role="button"
             xmlns="http://www.w3.org/2000/svg"

@@ -120,7 +120,11 @@ const RecipeGenerator = () => {
       setSelected([]);
       setPrompt("");
       setNumRecipes(2);
-      setSaveMessage("Recipes saved successfully!");
+      setSaveMessage(
+        selected.length === 0
+          ? "All recipes have been deleted!"
+          : "Recipes saved successfully!"
+      );
     } catch (err) {
       setError(err.message || "Failed to save recipes");
     } finally {
@@ -273,7 +277,7 @@ const RecipeGenerator = () => {
                 className={`px-6 py-3 rounded-lg transition duration-200 focus:outline-none border-none ${
                   selected.length === 0
                     ? "bg-red-600 text-white hover:bg-red-700"
-                    : "bg-[#E63946] text-white hover:bg-[#cc333f]"
+                    : "bg-[#4CAF50] text-white hover:bg-[#45a049]"
                 }`}
               >
                 {saving

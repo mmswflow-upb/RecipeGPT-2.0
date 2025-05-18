@@ -1,15 +1,19 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import starsIcon from "../assets/logos/stars.png";
 
 const GenerateRecipeButton = () => {
   const { theme } = useTheme();
+  const location = useLocation();
+  const isActive = location.pathname === "/generate";
 
   return (
     <Link
       to="/generate"
-      className="flex items-center space-x-2 hover:text-[#E63946] transition-colors"
+      className={`flex items-center space-x-2 transition-colors ${
+        isActive ? "text-[#E63946]" : "hover:text-[#E63946]"
+      }`}
     >
       <img
         src={starsIcon}

@@ -1,8 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 
-const Alert = ({ type = "error", message, onClose }) => {
+const Alert = ({ type = "error", message, onClose, autoClose = true }) => {
   const { theme } = useTheme();
+
+  useEffect(() => {
+    if (autoClose && onClose) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000); // Close after 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [autoClose, onClose]);
 
   const alertStyles = {
     error: {
@@ -35,10 +45,16 @@ const Alert = ({ type = "error", message, onClose }) => {
         <i className={`fa-solid ${styles.icon} text-lg`}></i>
         <p className="text-sm font-medium">{message}</p>
       </div>
-      {onClose && (
+      {onClose && !autoClose && (
         <button
           onClick={onClose}
-          className="text-red-500 hover:text-red-700 transition-colors bg-transparent border-none p-0 focus:outline-none"
+          className={`${
+            type === "error"
+              ? "text-red-500 hover:text-red-700"
+              : type === "warning"
+              ? "text-yellow-500 hover:text-yellow-700"
+              : "text-green-500 hover:text-green-700"
+          } transition-colors bg-transparent border-none p-0 focus:outline-none`}
           aria-label="Close alert"
         >
           <i className="fa-solid fa-xmark text-lg"></i>

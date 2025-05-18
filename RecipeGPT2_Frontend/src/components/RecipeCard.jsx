@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import { getDefaultImage } from "../utils/categoryImageMap";
 import servingIcon from "../assets/logos/serving.png";
@@ -8,6 +9,12 @@ import unsavedIcon from "../assets/logos/unsaved.png";
 
 const RecipeCard = ({ recipe, selected, onSelect, index }) => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleViewDetails = (e) => {
+    e.stopPropagation();
+    navigate(`/recipe/${recipe.id}`);
+  };
 
   return (
     <div
@@ -117,10 +124,7 @@ const RecipeCard = ({ recipe, selected, onSelect, index }) => {
               {recipe.description || "No description available."}
             </p>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                // TODO: Implement view details functionality
-              }}
+              onClick={handleViewDetails}
               className="px-3 py-1 rounded-md text-sm font-medium bg-[#E63946] text-white focus:outline-none border-none hover:bg-[#cc333f] transition-colors flex-shrink-0"
             >
               View Details

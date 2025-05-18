@@ -11,6 +11,7 @@ import { RecipeBatchProvider } from "./contexts/RecipeBatchContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import RecipeGenerator from "./pages/RecipeGenerator";
+import RecipeDetails from "./pages/RecipeDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -28,6 +29,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RecipeGenerator />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/recipe/:id"
+                element={
+                  <ProtectedRoute>
+                    <RecipeDetails />
                   </ProtectedRoute>
                 }
               />
