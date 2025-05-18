@@ -16,16 +16,6 @@ jobs:
       # 1️⃣ Checkout your code
       - uses: actions/checkout@v4
 
-      - name: Debug environment injection
-        run: |
-          echo "Secret length:"
-          if [[ -z "${{ secrets.GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY }}" ]]; then
-          echo "‼️ SECRET NOT LOADED ‼️"
-          exit 1
-          else
-          echo "OK (non-empty)"
-          fi
-
       # 2️⃣ Inject your three secrets into src/main/resources
       - name: Write application.properties & service accounts
         working-directory: ./RecipeGPT2_Server
