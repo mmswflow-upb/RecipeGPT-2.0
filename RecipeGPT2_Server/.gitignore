@@ -56,3 +56,4 @@ application.yaml
 .env
 *.env
 serviceAccountKey.json
+gcp_springboot_deployment_sa_key.json

@@ -1,0 +1,70 @@
+name: Build & Deploy Spring Boot to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    # ← picks up both your env-scoped secrets and variables
+    environment: SpringBoot-Server
+
+    steps:
+      # 1️⃣ Checkout your code
+      - uses: actions/checkout@v4
+
+      # 2️⃣ Inject secrets into src/main/resources
+      - name: Write application.properties & service accounts
+        working-directory: ./RecipeGPT2_Server
+        env:
+          APPLICATION_PROPERTIES: ${{ secrets.APPLICATION_PROPERTIES }}
+          FIREBASE_ADMIN_SA: ${{ secrets.FIREBASE_ADMIN_SA }}
+          GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY: ${{ secrets.GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY }}
+        run: |
+          mkdir -p src/main/resources
+          echo "$APPLICATION_PROPERTIES" > src/main/resources/application.properties
+          echo "$FIREBASE_ADMIN_SA"       > src/main/resources/firebase-admin.json
+          echo "$GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY" \
+                                          > src/main/resources/gcp-springboot-deployment-sa-key.json
+          chmod 600 src/main/resources/*
+
+      # 3️⃣ Authenticate to GCP using your deployer SA
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY }}
+
+      # 4️⃣ Install gcloud SDK
+      - name: Set up gcloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      # 5️⃣ Build the Spring Boot JAR
+      - name: Build JAR with Maven
+        working-directory: ./RecipeGPT2_Server
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
+
+      # 6️⃣ Build & push Docker image
+      - name: Build and push Docker image
+        working-directory: ./RecipeGPT2_Server
+        run: |
+          IMAGE_URI="${{ vars.GCP_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.CONTAINER_REPOSITORY }}/springboot:${{ github.sha }}"
+          echo "Building $IMAGE_URI"
+          docker build -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+
+      # 7️⃣ Deploy to Cloud Run
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy springboot-service \
+            --image "$IMAGE_URI" \
+            --platform managed \
+            --region "${{ vars.GCP_LOCATION }}" \
+            --port 8080 \
+            --allow-unauthenticated

@@ -9,3 +9,6 @@
 .git/
 .vscode/
 */target
+
+serviceAccountKey.json
+gcp_springboot_deployment_sa_key.json
