@@ -9,22 +9,58 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
 
-    # ← Add this so we pull secrets from your “React App Env” environment
+    # ← pulls vars & secrets scoped to this environment
     environment: React-App
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug list all files
+        run: ls -R .
+
+      - name: Debug existing .env
+        working-directory: ./RecipeGPT2_Frontend
+        run: |
+          echo "Files in RecipeGPT2_Frontend before .env write:"
+          ls -la .
+          if [ -f .env ]; then
+            echo "Contents of existing .env:"
+            cat .env
+          else
+            echo "No .env file present yet"
+          fi
+
+      # ─── Write and inspect the new .env and env vars ───
+      - name: Debug write and inspect .env
+        working-directory: ./RecipeGPT2_Frontend
+        env:
+          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL }}
+        run: |
+          echo "Writing .env with VITE_SERVER_URL..."
+          echo "VITE_SERVER_URL=${VITE_SERVER_URL}" > .env
+
+          echo
+          echo "Now listing RecipeGPT2_Frontend contents:"
+          ls -la .
+
+          echo
+          echo "Contents of .env:"
+          cat .env
+
+          echo
+          echo "=== printenv (filtered) ==="
+          printenv | grep VITE_SERVER_URL || echo "VITE_SERVER_URL not in env"
+
+      # ─── Normal build step ───
       - name: Install dependencies & build
         working-directory: ./RecipeGPT2_Frontend
         env:
-          # now this will resolve from the environment’s secrets
           VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL }}
         run: |
-          echo "VITE_SERVER_URL=${VITE_SERVER_URL}" > .env
           npm ci
           npm run build
 
+      # ─── Deploy to Firebase Hosting ───
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
