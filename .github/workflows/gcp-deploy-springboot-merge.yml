@@ -24,10 +24,9 @@ jobs:
           GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY: ${{ secrets.GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY }}
         run: |
           mkdir -p src/main/resources
-          echo "$APPLICATION_PROPERTIES" > src/main/resources/application.properties
-          echo "$FIREBASE_ADMIN_SA"       > src/main/resources/firebase-sa-key.json
-          echo "$GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY" \
-                                          > src/main/resources/gcp-springboot-deployment-sa-key.json
+          echo "$APPLICATION_PROPERTIES"            > src/main/resources/application.properties
+          echo "$FIREBASE_ADMIN_SA"                  > src/main/resources/firebase-sa-key.json
+          echo "$GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY"   > src/main/resources/gcp-springboot-deployment-sa-key.json
           chmod 600 src/main/resources/*
 
       - name: Authenticate to GCP
@@ -56,6 +55,10 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: maven
+
+      - name: Run unit tests
+        working-directory: ./RecipeGPT2_Server
+        run: mvn --batch-mode test
 
       - name: Build JAR with system Maven (quiet)
         working-directory: ./RecipeGPT2_Server
