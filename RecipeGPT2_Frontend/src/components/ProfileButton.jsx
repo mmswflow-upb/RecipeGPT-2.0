@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import defaultProfilePic from "../assets/logos/profile.png";
@@ -10,6 +10,7 @@ const ProfileButton = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -41,12 +42,18 @@ const ProfileButton = () => {
 
   if (!isAuthenticated) return null;
 
+  const isSettingsPage = location.pathname === "/settings";
+
   return (
     <div className="relative mr-6" ref={dropdownRef}>
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className={`flex items-center space-x-2 hover:text-[#E63946] transition-colors focus:outline-none bg-transparent border-none ${
-          theme === "light" ? "text-[#1D1D1D]" : "text-white"
+        className={`flex items-center space-x-2 transition-colors focus:outline-none bg-transparent border-none ${
+          isSettingsPage
+            ? "text-[#E63946]"
+            : theme === "light"
+            ? "text-[#1D1D1D] hover:text-[#E63946]"
+            : "text-white hover:text-[#E63946]"
         }`}
         title="Profile"
       >

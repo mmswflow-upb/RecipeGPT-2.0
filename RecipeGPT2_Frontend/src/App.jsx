@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import RecipeGenerator from "./pages/RecipeGenerator";
 import RecipeDetails from "./pages/RecipeDetails";
+import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
@@ -37,6 +38,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RecipeDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
                   </ProtectedRoute>
                 }
               />
