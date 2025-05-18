@@ -13,10 +13,12 @@ jobs:
     environment: SpringBoot-Server
 
     steps:
-      # 1️⃣ Checkout your code
       - uses: actions/checkout@v4
 
-      # 2️⃣ Inject your secrets into src/main/resources
+      - name: Fix permissions on resources
+        run: |
+          chmod -R u+rwX ./RecipeGPT2_Server/src/main/resources
+
       - name: Write application.properties & service accounts
         working-directory: ./RecipeGPT2_Server
         env:
@@ -31,7 +33,6 @@ jobs:
                                           > src/main/resources/gcp-springboot-deployment-sa-key.json
           chmod 600 src/main/resources/*
 
-      # 3️⃣ Authenticate to GCP using the JSON key
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
@@ -42,7 +43,6 @@ jobs:
           access_token_scopes: https://www.googleapis.com/auth/cloud-platform
           access_token_lifetime: 3600s
 
-      # 4️⃣ Set up gcloud & Docker auth
       - name: Set up gcloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -52,7 +52,6 @@ jobs:
         run: |
           gcloud auth configure-docker "${{ vars.GCP_LOCATION }}-docker.pkg.dev"
 
-      # 5️⃣ Install Java & Maven
       - name: Set up Java & Maven
         uses: actions/setup-java@v3
         with:
@@ -60,12 +59,10 @@ jobs:
           java-version: 21
           cache: maven
 
-      # 6️⃣ Build the Spring Boot JAR
       - name: Build JAR with Maven
         working-directory: ./RecipeGPT2_Server
         run: mvn clean package -DskipTests
 
-      # 7️⃣ Build & push Docker image
       - name: Build and push Docker image
         working-directory: ./RecipeGPT2_Server
         run: |
@@ -73,7 +70,6 @@ jobs:
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
 
-      # 8️⃣ Deploy to Cloud Run
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy springboot-service \
