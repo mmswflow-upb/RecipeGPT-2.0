@@ -29,6 +29,6 @@ COPY --from=build /app/target/*.jar app.jar
 COPY src/main/resources/firebase-admin.json /app/credentials/firebase-admin.json
 
 # 6. Expose and launch
-ENV PORT=8080
-EXPOSE 8080
+ENV PORT=8081
+EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
