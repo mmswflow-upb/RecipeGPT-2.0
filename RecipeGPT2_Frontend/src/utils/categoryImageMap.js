@@ -1,4 +1,4 @@
-const BASE_PATH = "/public/assets/default-recipes-images";
+const BASE_PATH = "/assets/default-recipes-images";
 
 export const getDefaultImage = (categories) => {
   if (!categories || categories.length === 0)
