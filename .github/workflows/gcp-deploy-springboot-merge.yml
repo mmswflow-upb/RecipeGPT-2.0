@@ -8,13 +8,15 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+
+    # Make sure this matches your Environment name exactly
     environment: SpringBoot-Server
 
     steps:
       # 1️⃣ Checkout your code
       - uses: actions/checkout@v4
 
-      # 2️⃣ Inject your three secrets into src/main/resources
+      # 2️⃣ Inject your secrets into src/main/resources
       - name: Write application.properties & service accounts
         working-directory: ./RecipeGPT2_Server
         env:
@@ -29,24 +31,16 @@ jobs:
                                           > src/main/resources/gcp-springboot-deployment-sa-key.json
           chmod 600 src/main/resources/*
 
-      # 3️⃣ Authenticate to GCP using Workload Identity or JSON key
+      # 3️⃣ Authenticate to GCP using the JSON key
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
-          # choose one of the following blocks:
-          # — For JSON key:
-          # credentials_json: ${{ secrets.GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY }}
-          # — For Workload Identity:
-          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SPRINGBOOT_DEPLOYMENT_SA_NAME }}
-
+          credentials_json: ${{ secrets.GCP_SPRINGBOOT_DEPLOYMENT_SA_KEY }}
           create_credentials_file: true
           export_environment_variables: true
           cleanup_credentials: true
           access_token_scopes: https://www.googleapis.com/auth/cloud-platform
           access_token_lifetime: 3600s
-          retries: 3
-          backoff: 250
 
       # 4️⃣ Set up gcloud & Docker auth
       - name: Set up gcloud SDK
@@ -58,7 +52,7 @@ jobs:
         run: |
           gcloud auth configure-docker "${{ vars.GCP_LOCATION }}-docker.pkg.dev"
 
-      # 5️⃣ Install Java & Maven from the system
+      # 5️⃣ Install Java & Maven
       - name: Set up Java & Maven
         uses: actions/setup-java@v3
         with:
@@ -66,7 +60,7 @@ jobs:
           java-version: 21
           cache: maven
 
-      # 6️⃣ Build the Spring Boot JAR with system Maven
+      # 6️⃣ Build the Spring Boot JAR
       - name: Build JAR with Maven
         working-directory: ./RecipeGPT2_Server
         run: mvn clean package -DskipTests
@@ -76,7 +70,6 @@ jobs:
         working-directory: ./RecipeGPT2_Server
         run: |
           IMAGE_URI="${{ vars.GCP_LOCATION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.CONTAINER_REPOSITORY }}/springboot:${{ github.sha }}"
-          echo "Building $IMAGE_URI"
           docker build -t "$IMAGE_URI" .
           docker push "$IMAGE_URI"
 
