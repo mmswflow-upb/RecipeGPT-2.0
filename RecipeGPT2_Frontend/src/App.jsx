@@ -14,6 +14,8 @@ import RecipeGenerator from "./pages/RecipeGenerator";
 import RecipeDetails from "./pages/RecipeDetails";
 import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
+import SavedRecipes from "./pages/SavedRecipes";
+import SavedRecipeDetails from "./pages/SavedRecipeDetails";
 import "./App.css";
 
 function App() {
@@ -46,6 +48,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/saved" element={<SavedRecipes />} />
+              <Route
+                path="/saved/recipe/:id"
+                element={
+                  <ProtectedRoute>
+                    <SavedRecipeDetails />
                   </ProtectedRoute>
                 }
               />

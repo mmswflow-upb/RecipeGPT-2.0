@@ -166,6 +166,16 @@ ${recipe.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                   </div>
                 )}
               </div>
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold mb-2">Description</h2>
+                <p
+                  className={
+                    theme === "dark" ? "text-gray-300" : "text-[#6C757D]"
+                  }
+                >
+                  {recipe.description}
+                </p>
+              </div>
             </div>
 
             <div

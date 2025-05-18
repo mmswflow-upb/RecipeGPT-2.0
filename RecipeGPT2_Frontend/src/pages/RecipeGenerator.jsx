@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import Alert from "../components/Alert";
@@ -12,6 +12,7 @@ import recipeIcon from "../assets/logos/recipe.png";
 import { generateRecipes } from "../services/api";
 import nextIcon from "../assets/logos/next.png";
 import previousIcon from "../assets/logos/previous.png";
+import Pagination from "../components/Pagination";
 
 const RecipeGenerator = () => {
   const navigate = useNavigate();
@@ -342,53 +343,11 @@ const RecipeGenerator = () => {
               })}
             </div>
             {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-4 mt-6">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded disabled:opacity-50 flex items-center bg-transparent border-none shadow-none hover:bg-transparent focus:outline-none"
-                  style={{
-                    background: "none",
-                    border: "none",
-                    boxShadow: "none",
-                  }}
-                >
-                  <img
-                    src={previousIcon}
-                    alt="Previous"
-                    className={`w-7 h-7 ${
-                      theme === "dark" ? "filter invert" : ""
-                    }`}
-                    style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
-                  />
-                </button>
-                <span>
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded disabled:opacity-50 flex items-center bg-transparent border-none shadow-none hover:bg-transparent focus:outline-none"
-                  style={{
-                    background: "none",
-                    border: "none",
-                    boxShadow: "none",
-                  }}
-                >
-                  <img
-                    src={nextIcon}
-                    alt="Next"
-                    className={`w-7 h-7 ${
-                      theme === "dark" ? "filter invert" : ""
-                    }`}
-                    style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
-                  />
-                </button>
-              </div>
-            )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
             <div className="mt-6 text-center">
               <button
                 onClick={handleSaveSelection}

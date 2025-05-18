@@ -126,6 +126,21 @@ export const recipeService = {
     const response = await api.post("/recipes/generate", { prompt });
     return response.data;
   },
+
+  /**
+   * Fetch saved recipes for the authenticated user
+   * @param {Object} params - Optional query params: { category, text }
+   * @returns {Promise<Array>} Array of saved recipes
+   */
+  getSavedRecipes: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.category) query.append("category", params.category);
+    if (params.text) query.append("text", params.text);
+    const response = await api.get(
+      `/api/recipes/saved${query.toString() ? `?${query.toString()}` : ""}`
+    );
+    return response.data;
+  },
 };
 
 const API_BASE_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:8080";
