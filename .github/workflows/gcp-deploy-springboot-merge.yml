@@ -9,7 +9,6 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
 
-    # ← picks up both your env-scoped secrets and variables
     environment: SpringBoot-Server
 
     steps:
