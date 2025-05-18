@@ -10,6 +10,8 @@ import RecipeCard from "../components/RecipeCard";
 import { useRecipeBatch } from "../contexts/RecipeBatchContext";
 import recipeIcon from "../assets/logos/recipe.png";
 import { generateRecipes } from "../services/api";
+import nextIcon from "../assets/logos/next.png";
+import previousIcon from "../assets/logos/previous.png";
 
 const RecipeGenerator = () => {
   const navigate = useNavigate();
@@ -22,6 +24,8 @@ const RecipeGenerator = () => {
     toggleRecipeSelection,
     selectAllRecipes,
     clearRecipes,
+    currentPage,
+    setCurrentPage,
   } = useRecipeBatch();
   const [prompt, setPrompt] = useState("");
   const [numRecipes, setNumRecipes] = useState(2);
@@ -31,6 +35,7 @@ const RecipeGenerator = () => {
   const [inputError, setInputError] = useState("");
   const [numRecipesError, setNumRecipesError] = useState("");
   const [saving, setSaving] = useState(false);
+  const RECIPES_PER_PAGE = 4;
 
   const validateForm = () => {
     let isValid = true;
@@ -70,6 +75,7 @@ const RecipeGenerator = () => {
       // Use the API service to generate recipes
       const data = await generateRecipes(prompt, numRecipes);
       setRecipes(data.recipes);
+      setCurrentPage(1); // Reset to first page on new generation
       // Select all recipes by default
       selectAllRecipes();
       setSaveMessage(
@@ -130,6 +136,13 @@ const RecipeGenerator = () => {
     }
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(recipes.length / RECIPES_PER_PAGE);
+  const paginatedRecipes = recipes.slice(
+    (currentPage - 1) * RECIPES_PER_PAGE,
+    currentPage * RECIPES_PER_PAGE
+  );
+
   if (!isAuthenticated) {
     navigate("/login", { replace: true });
     return null;
@@ -182,7 +195,6 @@ const RecipeGenerator = () => {
                       <input
                         type="number"
                         min={1}
-                        max={5}
                         value={numRecipes}
                         onChange={(e) => {
                           const value = Number(e.target.value);
@@ -253,22 +265,49 @@ const RecipeGenerator = () => {
             </h2>
             <div
               className={`grid gap-8 ${
-                recipes.length === 1
+                paginatedRecipes.length === 1
                   ? "grid-cols-1 max-w-2xl mx-auto"
                   : "grid-cols-1 md:grid-cols-2"
               }`}
             >
-              {recipes.map((recipe, idx) => (
-                <RecipeCard
-                  key={idx}
-                  recipe={recipe}
-                  selected={selectedRecipes.includes(idx)}
-                  onSelect={() => toggleRecipeSelection(idx)}
-                  index={idx}
-                >
-                  <div className="flex flex-col space-y-4 mb-6">
-                    <div className="flex items-center space-x-6">
-                      {recipe.estimatedPrepTime > 0 && (
+              {paginatedRecipes.map((recipe, idx) => {
+                const realIdx = (currentPage - 1) * RECIPES_PER_PAGE + idx;
+                return (
+                  <RecipeCard
+                    key={realIdx}
+                    recipe={recipe}
+                    selected={selectedRecipes.includes(realIdx)}
+                    onSelect={() => toggleRecipeSelection(realIdx)}
+                    index={realIdx}
+                  >
+                    <div className="flex flex-col space-y-4 mb-6">
+                      <div className="flex items-center space-x-6">
+                        {recipe.estimatedPrepTime > 0 && (
+                          <span className="flex items-center space-x-2">
+                            <span
+                              className={
+                                theme === "light"
+                                  ? "text-gray-600"
+                                  : "text-gray-300"
+                              }
+                            >
+                              Prep: {recipe.estimatedPrepTime} mins
+                            </span>
+                          </span>
+                        )}
+                        {recipe.estimatedCookingTime > 0 && (
+                          <span className="flex items-center space-x-2">
+                            <span
+                              className={
+                                theme === "light"
+                                  ? "text-gray-600"
+                                  : "text-gray-300"
+                              }
+                            >
+                              Cook: {recipe.estimatedCookingTime} mins
+                            </span>
+                          </span>
+                        )}
                         <span className="flex items-center space-x-2">
                           <span
                             className={
@@ -277,55 +316,79 @@ const RecipeGenerator = () => {
                                 : "text-gray-300"
                             }
                           >
-                            Prep: {recipe.estimatedPrepTime} mins
+                            {recipe.servings || "2"} servings
                           </span>
                         </span>
-                      )}
-                      {recipe.estimatedCookingTime > 0 && (
-                        <span className="flex items-center space-x-2">
-                          <span
-                            className={
-                              theme === "light"
-                                ? "text-gray-600"
-                                : "text-gray-300"
-                            }
-                          >
-                            Cook: {recipe.estimatedCookingTime} mins
-                          </span>
-                        </span>
-                      )}
-                      <span className="flex items-center space-x-2">
-                        <span
-                          className={
-                            theme === "light"
-                              ? "text-gray-600"
-                              : "text-gray-300"
-                          }
-                        >
-                          {recipe.servings || "2"} servings
-                        </span>
-                      </span>
-                    </div>
-                    {recipe.categories && recipe.categories.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {recipe.categories.map((category, idx) => (
-                          <span
-                            key={idx}
-                            className={`text-sm px-3 py-1 rounded-full ${
-                              theme === "light"
-                                ? "bg-gray-100 text-gray-600"
-                                : "bg-gray-700 text-gray-300"
-                            }`}
-                          >
-                            {category}
-                          </span>
-                        ))}
                       </div>
-                    )}
-                  </div>
-                </RecipeCard>
-              ))}
+                      {recipe.categories && recipe.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {recipe.categories.map((category, idx) => (
+                            <span
+                              key={idx}
+                              className={`text-sm px-3 py-1 rounded-full ${
+                                theme === "light"
+                                  ? "bg-gray-100 text-gray-600"
+                                  : "bg-gray-700 text-gray-300"
+                              }`}
+                            >
+                              {category}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </RecipeCard>
+                );
+              })}
             </div>
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-4 mt-6">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded disabled:opacity-50 flex items-center bg-transparent border-none shadow-none hover:bg-transparent focus:outline-none"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    boxShadow: "none",
+                  }}
+                >
+                  <img
+                    src={previousIcon}
+                    alt="Previous"
+                    className={`w-7 h-7 ${
+                      theme === "dark" ? "filter invert" : ""
+                    }`}
+                    style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
+                  />
+                </button>
+                <span>
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded disabled:opacity-50 flex items-center bg-transparent border-none shadow-none hover:bg-transparent focus:outline-none"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    boxShadow: "none",
+                  }}
+                >
+                  <img
+                    src={nextIcon}
+                    alt="Next"
+                    className={`w-7 h-7 ${
+                      theme === "dark" ? "filter invert" : ""
+                    }`}
+                    style={{ opacity: currentPage === totalPages ? 0.5 : 1 }}
+                  />
+                </button>
+              </div>
+            )}
             <div className="mt-6 text-center">
               <button
                 onClick={handleSaveSelection}

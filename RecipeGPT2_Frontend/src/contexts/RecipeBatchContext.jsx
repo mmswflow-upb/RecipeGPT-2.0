@@ -5,6 +5,7 @@ const RecipeBatchContext = createContext();
 export const RecipeBatchProvider = ({ children }) => {
   const [recipes, setRecipes] = useState([]);
   const [selectedRecipes, setSelectedRecipes] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const toggleRecipeSelection = (index) => {
     setSelectedRecipes((prev) =>
@@ -36,6 +37,8 @@ export const RecipeBatchProvider = ({ children }) => {
         selectAllRecipes,
         clearSelection,
         clearRecipes,
+        currentPage,
+        setCurrentPage,
       }}
     >
       {children}
