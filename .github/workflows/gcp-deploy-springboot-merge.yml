@@ -8,8 +8,6 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-
-    # Make sure this matches your Environment name exactly
     environment: SpringBoot-Server
 
     steps:
@@ -51,14 +49,17 @@ jobs:
         run: |
           gcloud auth configure-docker "${{ vars.GCP_LOCATION }}-docker.pkg.dev"
 
-      # ─── use your checked-in Maven Wrapper ───
-      - name: Make Maven wrapper executable
-        working-directory: ./RecipeGPT2_Server
-        run: chmod +x mvnw
+      # ─── Use system Maven ───
+      - name: Set up Java & Maven
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
 
-      - name: Build JAR with Maven Wrapper
+      - name: Build JAR with system Maven
         working-directory: ./RecipeGPT2_Server
-        run: ./mvnw clean package -DskipTests
+        run: mvn clean package -DskipTests
 
       - name: Build and push Docker image
         working-directory: ./RecipeGPT2_Server
