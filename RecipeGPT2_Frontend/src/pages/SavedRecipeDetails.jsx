@@ -12,13 +12,14 @@ import copyingIcon from "../assets/logos/copying.png";
 import editIcon from "../assets/logos/edit.png";
 import undoIcon from "../assets/logos/undo.png";
 import binIcon from "../assets/logos/bin.png";
+import { userService } from "../services/api";
 
 const SavedRecipeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [showCopyAlert, setShowCopyAlert] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState(null);
@@ -28,17 +29,68 @@ const SavedRecipeDetails = () => {
     description: false,
     ingredients: false,
     instructions: false,
+    isPublic: false,
   });
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState([
+    "Asian Cooking",
+    "Mediterranean Cooking",
+    "Latin American Cooking",
+    "Middle Eastern & North African Cooking",
+    "Indian & South Asian Cooking",
+    "European Continental Cooking",
+    "African Cooking",
+    "American Cooking",
+    "Vegetarian & Plant-Based",
+    "Vegan",
+    "Gluten-Free",
+    "Low-Carb & Keto",
+    "Paleo & Whole30",
+    "Seafood & Pescatarian",
+    "Desserts & Baking",
+    "Breakfast & Brunch",
+    "Street Food & Snacks",
+    "Soups & Stews",
+    "Salads & Grain Bowls",
+    "Fusion & Modernist",
+    "Halal",
+    "Beverages",
+  ]);
+  const [deleteAlert, setDeleteAlert] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [saveAlert, setSaveAlert] = useState(null);
+
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const dropdown = document.getElementById("category-dropdown");
+      const addButton = document.getElementById("add-category-button");
+      if (
+        dropdown &&
+        !dropdown.contains(event.target) &&
+        !addButton?.contains(event.target)
+      ) {
+        setShowCategoryDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Get recipe from navigation state if available
   const recipe = location.state?.recipe || null;
 
   useEffect(() => {
-    if (recipe && recipe.id) {
+    if (recipe && recipe.id && formData === null && originalData === null) {
       setFormData({ ...recipe });
       setOriginalData({ ...recipe });
     }
-  }, [recipe]);
+    // Only set on first mount, not on every recipe change
+    // eslint-disable-next-line
+  }, []);
 
   if (!isAuthenticated) {
     navigate("/login", { replace: true });
@@ -79,11 +131,14 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
 
   const handleEditToggle = () => setEditMode((prev) => !prev);
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
     setHasChanges((prev) => ({
       ...prev,
-      [name]: value !== originalData[name],
+      [name]: (type === "checkbox" ? checked : value) !== originalData[name],
     }));
   };
   const handleListChange = (field, idx, value) => {
@@ -99,6 +154,10 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
   };
   const handleAddListItem = (field) => {
     setFormData((prev) => ({ ...prev, [field]: [...prev[field], ""] }));
+    setHasChanges((prev) => ({
+      ...prev,
+      [field]: true,
+    }));
   };
   const handleRemoveListItem = (field, idx) => {
     setFormData((prev) => {
@@ -135,9 +194,97 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
       description: false,
       ingredients: false,
       instructions: false,
+      isPublic: false,
     });
   };
-  // TODO: Implement save logic to backend
+  const handleDelete = async () => {
+    setShowDeleteConfirm(false);
+    try {
+      if (displayData.isUserOwner) {
+        await fetch(
+          `${
+            import.meta.env.VITE_SERVER_URL || "http://localhost:8080"
+          }/api/recipes/${displayData.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+      } else {
+        const user = JSON.parse(localStorage.getItem("user"));
+        const savedRecipes = (user?.savedRecipes || []).filter(
+          (id) => id !== displayData.id
+        );
+        await fetch(
+          `${
+            import.meta.env.VITE_SERVER_URL || "http://localhost:8080"
+          }/api/users/saved-recipes`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({ savedRecipes }),
+          }
+        );
+        user.savedRecipes = savedRecipes;
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+      navigate("/saved");
+    } catch (err) {
+      setDeleteAlert("Failed to delete recipe. Please try again.");
+    }
+  };
+  const handleSaveChanges = async () => {
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_SERVER_URL || "http://localhost:8080"
+        }/api/recipes/${displayData.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            title: formData.title,
+            categories: formData.categories,
+            ingredients: formData.ingredients,
+            instructions: formData.instructions,
+            estimatedCookingTime: formData.estimatedCookingTime,
+            estimatedPrepTime: formData.estimatedPrepTime,
+            servings: formData.servings,
+            image: formData.image,
+            description: formData.description,
+            isPublic: formData.isPublic,
+          }),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to update recipe");
+      const updatedRecipe = await response.json();
+      setOriginalData({
+        ...updatedRecipe,
+        isUserOwner: displayData.isUserOwner,
+      });
+      setFormData({ ...updatedRecipe, isUserOwner: displayData.isUserOwner });
+      setEditMode(false);
+      setHasChanges({
+        title: false,
+        description: false,
+        ingredients: false,
+        instructions: false,
+        isPublic: false,
+      });
+      setSaveAlert("Recipe updated successfully!");
+      setTimeout(() => setSaveAlert(null), 3000);
+    } catch (err) {
+      setSaveAlert("Failed to update recipe. Please try again.");
+    }
+  };
 
   return (
     <PageLayout>
@@ -376,71 +523,163 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                 </div>
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold mb-2">Categories</h3>
-                  {displayData.isUserOwner &&
-                    editMode &&
-                    hasChanges.categories && (
-                      <button
-                        onClick={() => handleUndo("categories")}
-                        className="text-[#E63946] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent"
-                      >
-                        <img
-                          src={undoIcon}
-                          alt="Undo"
-                          className="w-4 h-4 object-contain inline"
-                          style={{
-                            filter:
-                              "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)",
-                          }}
-                        />
-                      </button>
-                    )}
                 </div>
                 {displayData.isUserOwner && editMode ? (
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "Breakfast",
-                      "Lunch",
-                      "Dinner",
-                      "Dessert",
-                      "Snack",
-                      "Vegetarian",
-                      "Vegan",
-                      "Gluten-Free",
-                      "Dairy-Free",
-                      "Low-Carb",
-                      "High-Protein",
-                    ].map((category) => (
-                      <label
-                        key={category}
-                        className={`flex items-center space-x-2 px-3 py-1 rounded-full cursor-pointer ${
-                          theme === "light"
-                            ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.categories.includes(category)}
-                          onChange={(e) => {
-                            const newCategories = e.target.checked
-                              ? [...formData.categories, category]
-                              : formData.categories.filter(
-                                  (c) => c !== category
-                                );
+                  <div className="flex items-center justify-between w-full">
+                    {/* Left: Categories tags and Add button */}
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {formData.categories.map((category, idx) => (
+                        <span
+                          key={idx}
+                          className={`px-3 py-1 ${
+                            theme === "dark"
+                              ? "bg-gray-700 text-gray-300"
+                              : "bg-[#F1FA8C] text-[#1D1D1D]"
+                          } rounded-full text-sm flex items-center space-x-2`}
+                        >
+                          <span>{category}</span>
+                          <button
+                            onClick={() => {
+                              const newCategories = formData.categories.filter(
+                                (c) => c !== category
+                              );
+                              setFormData((prev) => ({
+                                ...prev,
+                                categories: newCategories,
+                              }));
+                              setHasChanges((prev) => ({
+                                ...prev,
+                                categories: true,
+                              }));
+                            }}
+                            className="text-[#E63946] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent"
+                          >
+                            <i className="fa-solid fa-xmark"></i>
+                          </button>
+                        </span>
+                      ))}
+                      <div className="relative flex items-center space-x-2">
+                        <button
+                          id="add-category-button"
+                          onClick={() =>
+                            setShowCategoryDropdown(!showCategoryDropdown)
+                          }
+                          className={`px-3 py-1 border border-dashed ${
+                            theme === "dark"
+                              ? "border-[#E63946] text-[#E63946] hover:border-[#E63946]"
+                              : "border-[#E63946] text-[#E63946] hover:border-[#E63946]"
+                          } rounded-full text-sm hover:opacity-80 transition-all duration-200 focus:outline-none bg-transparent`}
+                        >
+                          <i className="fa-solid fa-plus"></i> Add
+                        </button>
+                        {hasChanges.categories && (
+                          <button
+                            onClick={() => handleUndo("categories")}
+                            className="text-[#E63946] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent"
+                          >
+                            <img
+                              src={undoIcon}
+                              alt="Undo"
+                              className="w-4 h-4 object-contain"
+                              style={{
+                                filter:
+                                  "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)",
+                              }}
+                            />
+                          </button>
+                        )}
+                      </div>
+                      {showCategoryDropdown && (
+                        <div
+                          id="category-dropdown"
+                          className={`absolute z-10 mt-2 w-64 rounded-md shadow-lg py-1 max-h-60 overflow-y-auto ${
+                            theme === "light"
+                              ? "bg-[#FFFDF9] border border-gray-200"
+                              : "bg-black border border-gray-700"
+                          }`}
+                        >
+                          {availableCategories
+                            .filter(
+                              (category) =>
+                                !formData.categories.includes(category)
+                            )
+                            .map((category) => (
+                              <button
+                                key={category}
+                                onClick={() => {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    categories: [...prev.categories, category],
+                                  }));
+                                  setHasChanges((prev) => ({
+                                    ...prev,
+                                    categories: true,
+                                  }));
+                                  setShowCategoryDropdown(false);
+                                }}
+                                className={`w-full text-left px-4 py-2 text-sm hover:bg-[#E63946] hover:text-white transition-colors bg-transparent border-none focus:outline-none ${
+                                  theme === "light"
+                                    ? "text-gray-700"
+                                    : "text-gray-200"
+                                }`}
+                              >
+                                {category}
+                              </button>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                    {/* Right: Make Public button for publishers */}
+                    {user?.isPublisher && (
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button
+                          type="button"
+                          onClick={() => {
                             setFormData((prev) => ({
                               ...prev,
-                              categories: newCategories,
+                              isPublic: !prev.isPublic,
                             }));
                             setHasChanges((prev) => ({
                               ...prev,
-                              categories: true,
+                              isPublic:
+                                !hasChanges.isPublic ||
+                                originalData.isPublic !== !formData.isPublic,
                             }));
                           }}
-                          className="hidden"
-                        />
-                        <span>{category}</span>
-                      </label>
-                    ))}
+                          className={`px-6 py-2 rounded-2xl font-semibold transition-all duration-200 focus:outline-none border-2
+                            ${
+                              formData.isPublic
+                                ? theme === "dark"
+                                  ? "bg-[#2d070a] text-[#ffb3b3] border-[#E63946] hover:bg-[#a11a24] hover:text-white hover:border-[#E63946]"
+                                  : "bg-[#ffeaea] text-[#E63946] border-[#E63946] hover:bg-[#c72c3b] hover:text-white hover:border-[#E63946]"
+                                : theme === "dark"
+                                ? "bg-[#222] text-gray-300 border-gray-600 hover:bg-[#111] hover:text-white hover:border-gray-600"
+                                : "bg-white text-gray-600 border-gray-600 hover:bg-gray-300 hover:text-gray-800 hover:border-gray-600"
+                            }
+                          `}
+                        >
+                          {formData.isPublic ? "Make Private" : "Make Public"}
+                        </button>
+                        {hasChanges.isPublic && (
+                          <button
+                            type="button"
+                            onClick={() => handleUndo("isPublic")}
+                            className="ml-2 text-[#E63946] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none bg-transparent"
+                          >
+                            <img
+                              src={undoIcon}
+                              alt="Undo"
+                              className="w-4 h-4 object-contain inline"
+                              style={{
+                                filter:
+                                  "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)",
+                              }}
+                            />
+                            <span className="ml-1">Undo</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   displayData.categories &&
@@ -750,6 +989,14 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                   />
                   <span>Copy Recipe</span>
                 </button>
+                {/* Delete button */}
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="bg-transparent text-[#E63946] border-2 border-[#E63946] px-6 py-3 rounded-2xl hover:bg-[#E63946] hover:text-white transition-all duration-200 flex items-center space-x-2 focus:outline-none outline-none hover:outline-none"
+                >
+                  <i className="fa-solid fa-trash"></i>
+                  <span>Delete</span>
+                </button>
                 {displayData.isUserOwner && !editMode && (
                   <button
                     onClick={handleEditToggle}
@@ -772,25 +1019,26 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                   </button>
                 )}
                 {displayData.isUserOwner && editMode && (
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 items-center">
                     <button
                       onClick={handleCancel}
                       className={`${
                         theme === "dark"
-                          ? "text-gray-300 hover:text-white"
-                          : "text-gray-600 hover:text-gray-800"
-                      } px-6 py-3 rounded-2xl hover:opacity-80 transition-all duration-200 flex items-center space-x-2 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent`}
+                          ? "text-gray-300 hover:text-white border-2 border-gray-600 hover:border-gray-600"
+                          : "text-gray-600 hover:text-gray-800 border-2 border-gray-600 hover:border-gray-600"
+                      } px-6 py-3 rounded-2xl transition-all duration-200 flex items-center space-x-2 focus:outline-none outline-none hover:outline-none bg-transparent`}
                     >
                       <span>Cancel</span>
                     </button>
                     <button
                       className={`${
                         theme === "dark"
-                          ? "text-[#10b981] hover:text-green-400"
-                          : "text-[#10b981] hover:text-green-600"
-                      } px-6 py-3 rounded-2xl hover:opacity-80 transition-all duration-200 flex items-center space-x-2 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent`}
+                          ? "bg-[#E63946] text-white hover:bg-red-700"
+                          : "bg-[#E63946] text-white hover:bg-red-700"
+                      } px-6 py-3 rounded-2xl transition-all duration-200 flex items-center space-x-2 focus:outline-none border-none outline-none hover:border-none hover:outline-none`}
+                      onClick={handleSaveChanges}
                     >
-                      <span>Save</span>
+                      <span>Save Changes</span>
                     </button>
                   </div>
                 )}
@@ -798,10 +1046,63 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
               {showCopyAlert && (
                 <Alert type="success" message="Recipe copied to clipboard!" />
               )}
+              {deleteAlert && (
+                <Alert
+                  type="error"
+                  message={deleteAlert}
+                  onClose={() => setDeleteAlert(null)}
+                />
+              )}
+              {saveAlert && (
+                <Alert
+                  type={
+                    saveAlert.includes("successfully") ? "success" : "error"
+                  }
+                  message={saveAlert}
+                  onClose={() => setSaveAlert(null)}
+                />
+              )}
             </div>
           </div>
         </div>
       </div>
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div
+            className={`rounded-2xl shadow-lg p-8 max-w-sm w-full text-center ${
+              theme === "dark"
+                ? "bg-[#1a1a1a] text-gray-200"
+                : "bg-white text-[#1D1D1D]"
+            }`}
+          >
+            <h2 className="text-xl font-bold mb-4 text-[#E63946]">
+              Delete Recipe
+            </h2>
+            <p className="mb-6">
+              Are you sure you want to delete this recipe? This action cannot be
+              undone.
+            </p>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={handleDelete}
+                className="bg-[#E63946] text-white px-6 py-2 rounded-2xl hover:bg-red-700 transition-all duration-200 focus:outline-none border-none"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className={`bg-transparent border-2 border-gray-600 px-6 py-2 rounded-2xl transition-all duration-200 focus:outline-none ${
+                  theme === "dark"
+                    ? "text-gray-300 hover:bg-gray-700 hover:text-white"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
+                } hover:border-gray-600`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageLayout>
   );
 };

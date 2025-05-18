@@ -16,6 +16,7 @@ public class RecipeUpdateRequest {
     private Integer servings;
     private Boolean isPublic;
     private String image;
+    private String description;
 
     // Default constructor
     public RecipeUpdateRequest() {
@@ -92,5 +93,13 @@ public class RecipeUpdateRequest {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

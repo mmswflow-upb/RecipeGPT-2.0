@@ -594,13 +594,13 @@ const Settings = () => {
                 >
                   <button
                     onClick={handleCancel}
-                    className={`px-6 py-2 border ${
+                    className={`${
                       theme === "dark"
-                        ? "border-gray-600 text-gray-300 hover:bg-gray-700"
-                        : "border-[#6C757D] text-[#6C757D] hover:bg-gray-50"
-                    } rounded-lg hover:opacity-80 transition-all duration-200 focus:outline-none bg-transparent`}
+                        ? "text-gray-300 hover:text-white border-2 border-gray-600 hover:border-gray-600"
+                        : "text-gray-600 hover:text-gray-800 border-2 border-gray-600 hover:border-gray-600"
+                    } px-6 py-3 rounded-2xl transition-all duration-200 flex items-center space-x-2 focus:outline-none outline-none hover:outline-none bg-transparent`}
                   >
-                    Cancel
+                    <span>Cancel</span>
                   </button>
                   <button
                     onClick={handleSaveChanges}

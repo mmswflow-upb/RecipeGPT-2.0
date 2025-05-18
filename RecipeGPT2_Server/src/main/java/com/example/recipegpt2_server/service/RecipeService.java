@@ -333,6 +333,10 @@ public class RecipeService {
             updates.put("image", updateRequest.getImage());
         }
 
+        if (updateRequest.getDescription() != null) {
+            updates.put("description", updateRequest.getDescription());
+        }
+
         // Special handling for isPublic attribute based on user role
         if (updateRequest.getIsPublic() != null) {
             // Only publishers can change the public attribute
@@ -347,6 +351,9 @@ public class RecipeService {
 
         // Update the recipe in Firestore if there are updates
         if (!updates.isEmpty()) {
+            // Always reset rating to 0 on update
+            updates.put("rating", 0.0);
+
             Firestore firestore = FirestoreClient.getFirestore();
             firestore.collection(RECIPES_COLLECTION)
                     .document(recipeId)
