@@ -57,3 +57,4 @@ application.yaml
 *.env
 serviceAccountKey.json
 gcp_springboot_deployment_sa_key.json
+stomp-test.html
