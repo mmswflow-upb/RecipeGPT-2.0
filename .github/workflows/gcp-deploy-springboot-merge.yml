@@ -15,9 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fix permissions on resources
-        run: |
-          chmod -R u+rwX ./RecipeGPT2_Server/src/main/resources
+      - name: Fix permissions on server directory
+        run: chmod -R u+rwX ./RecipeGPT2_Server
 
       - name: Write application.properties & service accounts
         working-directory: ./RecipeGPT2_Server
