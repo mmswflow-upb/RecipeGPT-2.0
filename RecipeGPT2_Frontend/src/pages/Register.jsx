@@ -55,7 +55,7 @@ const Register = () => {
         formData.username,
         formData.isPublisher
       );
-      navigate("/generate", { replace: true });
+      navigate("/login", { replace: true });
     } catch (err) {
       console.error("Registration error:", err);
       const errorMessage =

@@ -45,13 +45,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (email, password, username, publisher) => {
     try {
-      const response = await authService.register(
-        email,
-        password,
-        username,
-        publisher
-      );
-      setUser(response);
+      await authService.register(email, password, username, publisher);
       return true;
     } catch (error) {
       console.error("Registration failed:", error);

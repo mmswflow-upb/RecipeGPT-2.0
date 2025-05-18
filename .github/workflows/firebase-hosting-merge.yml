@@ -19,7 +19,7 @@ jobs:
         working-directory: ./RecipeGPT2_Frontend
         env:
           # now this will resolve from the environment’s secrets
-          VITE_SERVER_URL: ${{ secrets.VITE_SERVER_URL }}
+          VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL }}
         run: |
           echo "VITE_SERVER_URL=${VITE_SERVER_URL}" > .env
           npm ci

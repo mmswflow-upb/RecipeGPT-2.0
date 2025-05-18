@@ -53,18 +53,17 @@ export const authService = {
       username,
       publisher,
     });
-    const { idToken, ...userData } = response.data;
-
-    // Store the token and user data
-    localStorage.setItem("token", idToken);
-    localStorage.setItem("user", JSON.stringify(userData));
-
+    // Do not store token or user in localStorage after registration
     return response.data;
   },
 
   logout: () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    // Preserve theme preference if set
+    const theme = localStorage.getItem("theme");
+    localStorage.clear();
+    if (theme) {
+      localStorage.setItem("theme", theme);
+    }
   },
 
   getCurrentUser: () => {
