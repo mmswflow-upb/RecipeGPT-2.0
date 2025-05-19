@@ -2,6 +2,8 @@ package com.example.recipegpt2_server.controller;
 
 import com.example.recipegpt2_server.model.Recipe;
 import com.example.recipegpt2_server.model.User;
+import com.example.recipegpt2_server.model.RecipeQueryRequest;
+import com.example.recipegpt2_server.model.RecipeQueryResponse;
 import com.example.recipegpt2_server.service.RecipeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,6 +145,75 @@ public class RecipeController {
                 return sendRequestToOpenAI(requestBody);
         }
 
+        @PostMapping("/queryRecipe")
+        public ResponseEntity<?> queryRecipe(@RequestBody RecipeQueryRequest queryRequest) {
+                try {
+                        // 1. Get the recipe based on the provided ID
+                        Recipe recipe = recipeService.getRecipeById(queryRequest.getRecipeId());
+                        if (recipe == null) {
+                                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                        .body("Recipe not found with ID: " + queryRequest.getRecipeId());
+                        }
+
+                        // 2. Convert the recipe to a structured format for GPT
+                        String recipeFormat = formatRecipeForGpt(recipe);
+
+                        // 3. Build the system message with instructions
+                        String systemPrompt = "You are a helpful cooking assistant. "
+                                + "You will be provided with a recipe, a user's request about that recipe, "
+                                + "and a summary of previous conversation (if this isn't the first message). "
+                                + "First read the recipe and analyze the conversation summary (if provided). "
+                                + "Then respond helpfully to the user's request. "
+                                + "After responding, create a comprehensive summary of the ENTIRE conversation, "
+                                + "including all previous exchanges from the provided summary AND this new exchange. "
+                                + "The summary should maintain the chronological flow of the entire conversation. "
+                                + "Your response must be in JSON format with two fields: 'responseToUser' and 'summaryOfConvo'.";
+
+                        // 4. Prepare the user message combining recipe, request and summary
+                        String userMessage = "RECIPE:\n" + recipeFormat + "\n\n"
+                                + "USER REQUEST:\n" + queryRequest.getUserRequest() + "\n\n"
+                                + "CONVERSATION SUMMARY:\n" + (queryRequest.getConversationSummary() != null 
+                                    && !queryRequest.getConversationSummary().isEmpty() 
+                                    ? queryRequest.getConversationSummary() 
+                                    : "This is the first message in this conversation.");
+
+                        // 5. Create the schema for the response
+                        Map<String, Object> responseSchema = buildRecipeQueryResponseSchema();
+
+                        // 6. Build the request body
+                        Map<String, Object> requestBody = buildRequestBody(
+                                "gpt-4o",
+                                systemPrompt,
+                                userMessage,
+                                "recipe_query_response_schema",
+                                responseSchema
+                        );
+
+                        // 7. Send the request to OpenAI and handle the response
+                        ResponseEntity<?> openAiResponse = sendRequestToOpenAI(requestBody);
+                        
+                        if (openAiResponse.getStatusCode() == HttpStatus.OK && openAiResponse.getBody() instanceof Map) {
+                                Map<String, Object> responseMap = (Map<String, Object>) openAiResponse.getBody();
+                                
+                                if (responseMap.containsKey("responseToUser") && responseMap.containsKey("summaryOfConvo")) {
+                                        RecipeQueryResponse response = new RecipeQueryResponse(
+                                            (String) responseMap.get("responseToUser"),
+                                            (String) responseMap.get("summaryOfConvo")
+                                        );
+                                        return ResponseEntity.ok(response);
+                                } else {
+                                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                                .body("Invalid response format from OpenAI. Missing required fields.");
+                                }
+                        }
+                        
+                        return openAiResponse;
+                } catch (Exception e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body("Error processing recipe query: " + e.getMessage());
+                }
+        }
+
         // ----------------------
         // Internal Methods
         // ----------------------
@@ -264,5 +335,57 @@ public class RecipeController {
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                         .body("Error calling OpenAI: " + e.getMessage());
                 }
+        }
+
+        /**
+         * Formats a recipe object into a readable text format for GPT
+         */
+        private String formatRecipeForGpt(Recipe recipe) {
+                StringBuilder builder = new StringBuilder();
+                
+                builder.append("Title: ").append(recipe.getTitle()).append("\n\n");
+                
+                if (recipe.getDescription() != null && !recipe.getDescription().isEmpty()) {
+                        builder.append("Description: ").append(recipe.getDescription()).append("\n\n");
+                }
+                
+                if (recipe.getCategories() != null && !recipe.getCategories().isEmpty()) {
+                        builder.append("Categories: ").append(String.join(", ", recipe.getCategories())).append("\n\n");
+                }
+                
+                builder.append("Preparation Time: ").append(recipe.getEstimatedPrepTime()).append(" minutes\n");
+                builder.append("Cooking Time: ").append(recipe.getEstimatedCookingTime()).append(" minutes\n");
+                builder.append("Servings: ").append(recipe.getServings()).append("\n\n");
+                
+                if (recipe.getIngredients() != null && !recipe.getIngredients().isEmpty()) {
+                        builder.append("Ingredients:\n");
+                        for (String ingredient : recipe.getIngredients()) {
+                                builder.append("- ").append(ingredient).append("\n");
+                        }
+                        builder.append("\n");
+                }
+                
+                if (recipe.getInstructions() != null && !recipe.getInstructions().isEmpty()) {
+                        builder.append("Instructions:\n");
+                        for (int i = 0; i < recipe.getInstructions().size(); i++) {
+                                builder.append(i + 1).append(". ").append(recipe.getInstructions().get(i)).append("\n");
+                        }
+                }
+                
+                return builder.toString();
+        }
+
+        /**
+         * JSON schema for recipe query responses
+         */
+        private Map<String, Object> buildRecipeQueryResponseSchema() {
+                Map<String, Object> schema = new HashMap<>();
+                schema.put("type", "object");
+                schema.put("properties", Map.of(
+                        "responseToUser", Map.of("type", "string"),
+                        "summaryOfConvo", Map.of("type", "string")
+                ));
+                schema.put("required", List.of("responseToUser", "summaryOfConvo"));
+                return schema;
         }
 }
