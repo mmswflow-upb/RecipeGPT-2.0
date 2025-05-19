@@ -4,6 +4,7 @@ import com.example.recipegpt2_server.model.User;
 import com.example.recipegpt2_server.model.UserUpdateRequest;
 import com.example.recipegpt2_server.model.SavedRecipesUpdateRequest;
 import com.example.recipegpt2_server.model.DeleteSavedRecipesRequest;
+import com.example.recipegpt2_server.model.AddSavedRecipesRequest;
 import com.example.recipegpt2_server.service.JwtService;
 import com.example.recipegpt2_server.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,22 +82,25 @@ public class UserController {
     }
     
     /**
-     * Update user's saved recipes endpoint.
-     * Allows a user to update only their saved recipes list.
-     * All recipes must be valid (exist and not belong to the current user).
-     * If any recipe is invalid, the entire update is rejected.
+     * Add new recipes to user's saved recipes list endpoint.
+     * Takes an array of recipe IDs and adds them to the user's saved recipes list 
+     * if they're not already there and if they exist in Firestore.
+     * 
+     * This follows an all-or-nothing approach: if any recipe cannot be added,
+     * the entire operation fails and no recipes are added.
      * 
      * PUT /api/users/saved-recipes
      */
     @PutMapping("/saved-recipes")
-    public ResponseEntity<?> updateSavedRecipes(@RequestBody SavedRecipesUpdateRequest updateRequest) {
+    public ResponseEntity<?> addSavedRecipes(@RequestBody AddSavedRecipesRequest addRequest) {
         try {
             // Get the authenticated user from the security context
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             User currentUser = (User) authentication.getPrincipal();
             
-            // Update the user's saved recipes - this will throw an IllegalArgumentException if any recipe is invalid
-            User updatedUser = userService.updateSavedRecipes(currentUser.getEmail(), updateRequest);
+            // Add recipes to the user's saved recipes list
+            // This will throw IllegalArgumentException if any recipe can't be added
+            User updatedUser = userService.addSavedRecipes(currentUser.getEmail(), addRequest);
             
             // Generate new JWT token with the updated user data
             String newToken = jwtService.generateToken(updatedUser);
@@ -121,7 +125,7 @@ public class UserController {
             
             // Always include savedRecipes since this endpoint specifically updates them
             response.put("savedRecipes", updatedUser.getSavedRecipes());
-            response.put("message", "Saved recipes updated successfully");
+            response.put("message", "All recipes added to saved recipes successfully");
             
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
@@ -131,7 +135,7 @@ public class UserController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating saved recipes: " + e.getMessage());
+                    .body("Error adding saved recipes: " + e.getMessage());
         }
     }
 

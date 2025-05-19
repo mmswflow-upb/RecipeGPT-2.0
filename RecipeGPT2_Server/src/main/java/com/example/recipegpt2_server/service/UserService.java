@@ -6,6 +6,7 @@ import com.example.recipegpt2_server.model.UserRegistrationRequest;
 import com.example.recipegpt2_server.model.UserUpdateRequest;
 import com.example.recipegpt2_server.model.SavedRecipesUpdateRequest;
 import com.example.recipegpt2_server.model.DeleteSavedRecipesRequest;
+import com.example.recipegpt2_server.model.AddSavedRecipesRequest;
 import com.example.recipegpt2_server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -219,6 +220,95 @@ public class UserService implements UserDetailsService {
             currentSavedRecipes.removeAll(deleteRequest.getRecipeIds());
             user.setSavedRecipes(currentSavedRecipes);
         }
+        
+        // Save the updated user
+        return userRepository.save(user);
+    }
+
+    /**
+     * Add new recipe IDs to a user's savedRecipes list.
+     * For each recipe ID:
+     * 1. Check if it's already in the user's savedRecipes list
+     * 2. If not, check if it exists in Firestore
+     * 3. If it exists, add it to the user's savedRecipes list
+     * 
+     * This method follows an all-or-nothing approach: if any recipe cannot be added,
+     * the entire operation fails and no recipes are added.
+     * 
+     * @param email The email of the user
+     * @param addRequest The request containing recipe IDs to add
+     * @return The updated user
+     * @throws IllegalArgumentException If any recipe ID can't be added
+     */
+    public User addSavedRecipes(String email, AddSavedRecipesRequest addRequest) 
+            throws ExecutionException, InterruptedException, IllegalArgumentException {
+        User user = (User) loadUserByUsername(email);
+        
+        if (addRequest.getRecipeIds() == null || addRequest.getRecipeIds().isEmpty()) {
+            return user; // Nothing to do
+        }
+        
+        // Get current savedRecipes or initialize empty list
+        List<String> currentSavedRecipes = user.getSavedRecipes();
+        if (currentSavedRecipes == null) {
+            currentSavedRecipes = new ArrayList<>();
+        }
+        
+        // Maps to track issues with specific recipe IDs
+        Map<String, String> failedRecipes = new HashMap<>();
+        Map<String, String> alreadySavedRecipes = new HashMap<>();
+        
+        // List to store validated recipes that can be added
+        List<String> validatedRecipes = new ArrayList<>();
+        
+        // First validate all recipes - if any can't be added, we won't add any
+        for (String recipeId : addRequest.getRecipeIds()) {
+            // Check if already in savedRecipes
+            if (currentSavedRecipes.contains(recipeId)) {
+                alreadySavedRecipes.put(recipeId, "Recipe is already in saved recipes");
+                continue;
+            }
+            
+            try {
+                // Check if the recipe exists
+                Recipe recipe = recipeService.getRecipeById(recipeId);
+                
+                if (recipe == null) {
+                    failedRecipes.put(recipeId, "Recipe does not exist");
+                } else if (recipe.getUserId().equals(user.getId())) {
+                    // Cannot save your own recipe
+                    failedRecipes.put(recipeId, "Cannot save your own recipe");
+                } else {
+                    // Recipe is valid and not already saved
+                    validatedRecipes.add(recipeId);
+                }
+            } catch (Exception e) {
+                failedRecipes.put(recipeId, "Error checking recipe: " + e.getMessage());
+            }
+        }
+        
+        // If any recipes can't be added, fail the entire operation
+        if (!failedRecipes.isEmpty() || !alreadySavedRecipes.isEmpty()) {
+            StringBuilder errorMsg = new StringBuilder("Cannot add recipes to savedRecipes list. The following issues were found:");
+            
+            // Add failed recipes to error message
+            for (Map.Entry<String, String> entry : failedRecipes.entrySet()) {
+                errorMsg.append("\n- Recipe ID: ").append(entry.getKey())
+                       .append(", Reason: ").append(entry.getValue());
+            }
+            
+            // Add already saved recipes to error message
+            for (Map.Entry<String, String> entry : alreadySavedRecipes.entrySet()) {
+                errorMsg.append("\n- Recipe ID: ").append(entry.getKey())
+                       .append(", Reason: ").append(entry.getValue());
+            }
+            
+            throw new IllegalArgumentException(errorMsg.toString());
+        }
+        
+        // All recipes are valid and not already saved, add them
+        currentSavedRecipes.addAll(validatedRecipes);
+        user.setSavedRecipes(currentSavedRecipes);
         
         // Save the updated user
         return userRepository.save(user);
