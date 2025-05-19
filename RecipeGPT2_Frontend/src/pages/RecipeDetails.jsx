@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import PageLayout from "../components/PageLayout";
 import Alert from "../components/Alert";
 import { useAuth } from "../contexts/AuthContext";
-import { useRecipeBatch } from "../contexts/RecipeBatchContext";
 import { getDefaultImage } from "../utils/categoryImageMap";
 import clockIcon from "../assets/logos/clock.png";
 import cookingIcon from "../assets/logos/cooking.png";
@@ -14,13 +13,13 @@ import copyingIcon from "../assets/logos/copying.png";
 const RecipeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme } = useTheme();
   const { isAuthenticated } = useAuth();
-  const { recipes } = useRecipeBatch();
   const [showCopyAlert, setShowCopyAlert] = useState(false);
 
-  // Find the recipe from the context using the id from URL params
-  const recipe = recipes.find((r) => r.id === id);
+  // Get the recipe from navigation state
+  const recipe = location.state?.recipe;
 
   if (!isAuthenticated) {
     navigate("/login", { replace: true });
@@ -31,7 +30,10 @@ const RecipeDetails = () => {
     return (
       <PageLayout>
         <div className="container mx-auto px-4 py-8">
-          <Alert type="error" message="Recipe not found" />
+          <Alert
+            type="error"
+            message="Recipe not found. Please access this page via the Discover or Generator page."
+          />
         </div>
       </PageLayout>
     );

@@ -264,83 +264,25 @@ const RecipeGenerator = () => {
             <h2 className="text-xl font-semibold mb-4">
               Select recipes to keep:
             </h2>
-            <div
-              className={`grid gap-8 ${
-                paginatedRecipes.length === 1
-                  ? "grid-cols-1 max-w-2xl mx-auto"
-                  : "grid-cols-1 md:grid-cols-2"
-              }`}
-            >
-              {paginatedRecipes.map((recipe, idx) => {
-                const realIdx = (currentPage - 1) * RECIPES_PER_PAGE + idx;
-                return (
-                  <RecipeCard
-                    key={realIdx}
-                    recipe={recipe}
-                    selected={selectedRecipes.includes(realIdx)}
-                    onSelect={() => toggleRecipeSelection(realIdx)}
-                    index={realIdx}
-                  >
-                    <div className="flex flex-col space-y-4 mb-6">
-                      <div className="flex items-center space-x-6">
-                        {recipe.estimatedPrepTime > 0 && (
-                          <span className="flex items-center space-x-2">
-                            <span
-                              className={
-                                theme === "light"
-                                  ? "text-gray-600"
-                                  : "text-gray-300"
-                              }
-                            >
-                              Prep: {recipe.estimatedPrepTime} mins
-                            </span>
-                          </span>
-                        )}
-                        {recipe.estimatedCookingTime > 0 && (
-                          <span className="flex items-center space-x-2">
-                            <span
-                              className={
-                                theme === "light"
-                                  ? "text-gray-600"
-                                  : "text-gray-300"
-                              }
-                            >
-                              Cook: {recipe.estimatedCookingTime} mins
-                            </span>
-                          </span>
-                        )}
-                        <span className="flex items-center space-x-2">
-                          <span
-                            className={
-                              theme === "light"
-                                ? "text-gray-600"
-                                : "text-gray-300"
-                            }
-                          >
-                            {recipe.servings || "2"} servings
-                          </span>
-                        </span>
-                      </div>
-                      {recipe.categories && recipe.categories.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {recipe.categories.map((category, idx) => (
-                            <span
-                              key={idx}
-                              className={`text-sm px-3 py-1 rounded-full ${
-                                theme === "light"
-                                  ? "bg-gray-100 text-gray-600"
-                                  : "bg-gray-700 text-gray-300"
-                              }`}
-                            >
-                              {category}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </RecipeCard>
-                );
-              })}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {paginatedRecipes.length === 0 ? (
+                <div className="col-span-full text-center text-gray-500 py-12">
+                  No recipes generated yet.
+                </div>
+              ) : (
+                paginatedRecipes.map((recipe, idx) => {
+                  const realIdx = (currentPage - 1) * RECIPES_PER_PAGE + idx;
+                  return (
+                    <RecipeCard
+                      key={recipe.id || realIdx}
+                      recipe={recipe}
+                      selected={selectedRecipes.includes(realIdx)}
+                      onSelect={() => toggleRecipeSelection(realIdx)}
+                      index={realIdx}
+                    />
+                  );
+                })
+              )}
             </div>
             {/* Pagination Controls */}
             <Pagination

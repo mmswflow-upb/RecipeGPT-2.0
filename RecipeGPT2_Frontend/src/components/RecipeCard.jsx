@@ -14,7 +14,7 @@ const RecipeCard = ({ recipe, selected, onSelect, index }) => {
 
   const handleViewDetails = (e) => {
     e.stopPropagation();
-    navigate(`/recipe/${recipe.id}`);
+    navigate(`/recipe/${recipe.id}`, { state: { recipe } });
   };
 
   return (
@@ -36,12 +36,14 @@ const RecipeCard = ({ recipe, selected, onSelect, index }) => {
         <div className="absolute top-2 right-2 bg-white/80 rounded-full p-1">
           <img
             src={selected ? savedIcon : unsavedIcon}
-            alt={selected ? "Saved" : "Not Saved"}
+            alt={selected ? "Selected" : "Not Selected"}
             className="w-6 h-6 object-contain"
             style={{
               filter: selected
                 ? "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)"
-                : "brightness(0) saturate(100%) invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(90%)",
+                : theme === "light"
+                ? "brightness(0) saturate(100%) invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(90%)"
+                : "brightness(0) invert(1)",
             }}
           />
         </div>
