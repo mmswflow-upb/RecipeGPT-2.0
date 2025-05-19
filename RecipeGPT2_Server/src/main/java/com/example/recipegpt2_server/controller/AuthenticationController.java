@@ -88,4 +88,44 @@ public class AuthenticationController {
                     .body("Authentication error: " + e.getMessage());
         }
     }
+
+    /**
+     * Token validation endpoint.
+     * Clients send a JWT token, and we check if it's valid and not expired.
+     * 
+     * POST /api/auth/validate-token
+     */
+    @PostMapping("/validate-token")
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String authHeader) {
+        try {
+            // Check if auth header is present and in the correct format
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid Authorization header format");
+            }
+
+            // Extract token from header
+            String token = authHeader.substring(7);
+            
+            // Try to extract the username to check token format
+            String username = jwtService.extractUsername(token);
+            if (username == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid token format");
+            }
+            
+            // Check if token is expired using the private method in JwtService
+            boolean isExpired = jwtService.extractClaim(token, claims -> 
+                    claims.getExpiration().before(new java.util.Date()));
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("valid", !isExpired);
+            response.put("username", username);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid token: " + e.getMessage());
+        }
+    }
 }
