@@ -8,6 +8,7 @@ import addIcon from "../assets/logos/add.png";
 import searchIcon from "../assets/logos/recipe.png";
 import Pagination from "../components/Pagination";
 import { getDefaultImage } from "../utils/categoryImageMap";
+import { useNavigate } from "react-router-dom";
 
 const CATEGORY_OPTIONS = [
   { value: "", label: "All Categories" },
@@ -48,6 +49,7 @@ const RECIPES_PER_PAGE = 4;
 
 const SavedRecipes = () => {
   const { theme } = useTheme();
+  const navigate = useNavigate();
   const [recipes, setRecipes] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -102,19 +104,15 @@ const SavedRecipes = () => {
                 Look through your recipe book!
               </h2>
               <button
-                className={`flex items-center space-x-2 px-3 py-1 rounded-md text-sm font-medium bg-transparent border-none focus:outline-none transition-colors ${
-                  theme === "light" ? "text-green-400" : "text-green-200"
-                } hover:underline`}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium bg-[#E63946] text-white border-none focus:outline-none transition-colors hover:bg-[#cc333f]`}
+                onClick={() => navigate("/create")}
               >
                 <img
                   src={addIcon}
                   alt="Create"
                   className="w-5 h-5"
                   style={{
-                    filter:
-                      theme === "light"
-                        ? "invert(66%) sepia(61%) saturate(7492%) hue-rotate(90deg) brightness(92%) contrast(101%)"
-                        : "invert(85%) sepia(16%) saturate(7492%) hue-rotate(90deg) brightness(92%) contrast(101%)",
+                    filter: "brightness(0) invert(1)",
                   }}
                 />
                 <span>Create Recipe</span>

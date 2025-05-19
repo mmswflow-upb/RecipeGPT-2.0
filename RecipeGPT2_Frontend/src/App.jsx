@@ -17,6 +17,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SavedRecipes from "./pages/SavedRecipes";
 import SavedRecipeDetails from "./pages/SavedRecipeDetails";
 import DiscoverRecipes from "./pages/DiscoverRecipes";
+import CreateRecipe from "./pages/CreateRecipe";
 import "./App.css";
 
 function App() {
@@ -66,6 +67,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <DiscoverRecipes />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/create"
+                element={
+                  <ProtectedRoute>
+                    <CreateRecipe />
                   </ProtectedRoute>
                 }
               />

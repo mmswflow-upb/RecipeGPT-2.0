@@ -26,6 +26,37 @@ public class RecipeEditorController {
     private RecipeService recipeService;
 
     /**
+     * Create a new recipe
+     * - All authenticated users can create recipes
+     * - Only publishers can create public recipes
+     */
+    @PostMapping
+    public ResponseEntity<?> createRecipe(@RequestBody Recipe recipe) {
+        try {
+            // Get the authenticated user
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User currentUser = (User) authentication.getPrincipal();
+
+            // Set the user ID for the recipe
+            recipe.setUserId(currentUser.getId());
+
+            // Check if user is trying to make a public recipe
+            if (recipe.isPublic() && !currentUser.isPublisher()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Only publishers can create public recipes");
+            }
+
+            // Save the recipe
+            Recipe savedRecipe = recipeService.saveRecipe(recipe);
+
+            return ResponseEntity.ok(savedRecipe);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error creating recipe: " + e.getMessage());
+        }
+    }
+
+    /**
      * Get all recipes created by the current user
      */
     @GetMapping("/my-recipes")
