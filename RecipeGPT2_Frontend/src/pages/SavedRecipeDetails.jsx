@@ -12,6 +12,9 @@ import copyingIcon from "../assets/logos/copying.png";
 import editIcon from "../assets/logos/edit.png";
 import undoIcon from "../assets/logos/undo.png";
 import binIcon from "../assets/logos/bin.png";
+import cameraIcon from "../assets/logos/camera.png";
+import globalIcon from "../assets/logos/global.png";
+import lockIcon from "../assets/logos/lock.png";
 import { userService } from "../services/api";
 
 const SavedRecipeDetails = () => {
@@ -85,8 +88,8 @@ const SavedRecipeDetails = () => {
 
   useEffect(() => {
     if (recipe && recipe.id && formData === null && originalData === null) {
-      setFormData({ ...recipe });
-      setOriginalData({ ...recipe });
+      setFormData({ ...recipe, isPublic: recipe.public });
+      setOriginalData({ ...recipe, isPublic: recipe.public });
     }
     // Only set on first mount, not on every recipe change
     // eslint-disable-next-line
@@ -304,7 +307,7 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
           </button>
 
           <div id="recipe-header" className="mb-8">
-            <div className="relative h-[400px] rounded-3xl overflow-hidden mb-8">
+            <div className="relative h-[400px] rounded-3xl overflow-hidden mb-8 group">
               <img
                 className="w-full h-full object-cover"
                 src={
@@ -312,6 +315,19 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                 }
                 alt={displayData.title}
               />
+              {editMode && (
+                <button className="absolute inset-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 text-[#E63946] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent opacity-0 group-hover:opacity-100">
+                  <img
+                    src={cameraIcon}
+                    alt="Change Photo"
+                    className="w-20 h-20 object-contain"
+                    style={{
+                      filter:
+                        "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)",
+                    }}
+                  />
+                </button>
+              )}
             </div>
 
             <div id="recipe-info" className="mb-8">
@@ -496,30 +512,44 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                       </>
                     )}
                   </div>
-                  {displayData.isUserOwner &&
-                    editMode &&
-                    (hasChanges.estimatedPrepTime ||
-                      hasChanges.estimatedCookingTime ||
-                      hasChanges.servings) && (
-                      <button
-                        onClick={() => {
-                          handleUndo("estimatedPrepTime");
-                          handleUndo("estimatedCookingTime");
-                          handleUndo("servings");
-                        }}
-                        className="text-[#E63946] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent"
-                      >
+                  {/* Public/Private Status on the right of the info row, live in both modes */}
+                  <div className="flex items-center">
+                    {(
+                      displayData.isUserOwner && editMode
+                        ? formData.isPublic
+                        : displayData.public
+                    ) ? (
+                      <span className="flex items-center text-green-600 font-semibold text-sm ml-4">
                         <img
-                          src={undoIcon}
-                          alt="Undo"
-                          className="w-4 h-4 object-contain inline"
+                          src={globalIcon}
+                          alt="Public Recipe"
+                          className="w-5 h-5 mr-1 object-contain"
                           style={{
                             filter:
-                              "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)",
+                              theme === "dark"
+                                ? "brightness(0) invert(1)"
+                                : "none",
                           }}
                         />
-                      </button>
+                        Public
+                      </span>
+                    ) : (
+                      <span className="flex items-center text-gray-500 font-semibold text-sm ml-4">
+                        <img
+                          src={lockIcon}
+                          alt="Private Recipe"
+                          className="w-5 h-5 mr-1 object-contain"
+                          style={{
+                            filter:
+                              theme === "dark"
+                                ? "brightness(0) invert(1)"
+                                : "none",
+                          }}
+                        />
+                        Private
+                      </span>
                     )}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold mb-2">Categories</h3>
@@ -629,8 +659,8 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                         </div>
                       )}
                     </div>
-                    {/* Right: Make Public button for publishers */}
-                    {user?.isPublisher && (
+                    {/* Right: Make Public button for publishers, or read-only status for non-publishers */}
+                    {user?.isPublisher ? (
                       <div className="flex items-center space-x-2 ml-4">
                         <button
                           type="button"
@@ -677,6 +707,40 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                             />
                             <span className="ml-1">Undo</span>
                           </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center ml-4">
+                        {formData.isPublic ? (
+                          <span className="flex items-center text-green-600 font-semibold text-sm">
+                            <img
+                              src={globalIcon}
+                              alt="Public Recipe"
+                              className="w-5 h-5 mr-1 object-contain"
+                              style={{
+                                filter:
+                                  theme === "dark"
+                                    ? "brightness(0) invert(1)"
+                                    : "none",
+                              }}
+                            />
+                            Public
+                          </span>
+                        ) : (
+                          <span className="flex items-center text-gray-500 font-semibold text-sm">
+                            <img
+                              src={lockIcon}
+                              alt="Private Recipe"
+                              className="w-5 h-5 mr-1 object-contain"
+                              style={{
+                                filter:
+                                  theme === "dark"
+                                    ? "brightness(0) invert(1)"
+                                    : "none",
+                              }}
+                            />
+                            Private
+                          </span>
                         )}
                       </div>
                     )}

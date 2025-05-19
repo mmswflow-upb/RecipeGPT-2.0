@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SavedRecipes from "./pages/SavedRecipes";
 import SavedRecipeDetails from "./pages/SavedRecipeDetails";
+import DiscoverRecipes from "./pages/DiscoverRecipes";
 import "./App.css";
 
 function App() {
@@ -57,6 +58,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SavedRecipeDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/discover"
+                element={
+                  <ProtectedRoute>
+                    <DiscoverRecipes />
                   </ProtectedRoute>
                 }
               />

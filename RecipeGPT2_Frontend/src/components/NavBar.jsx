@@ -4,9 +4,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import ProfileButton from "./ProfileButton";
 import ThemeToggle from "./ThemeToggle";
-import BlogButton from "./BlogButton";
 import SavedRecipesButton from "./SavedRecipesButton";
 import GenerateRecipeButton from "./GenerateRecipeButton";
+import DiscoverRecipesButton from "./DiscoverRecipesButton";
 import forkAndKnifeIcon from "../assets/logos/fork-and-knife.png";
 
 const NavBar = () => {
@@ -41,7 +41,7 @@ const NavBar = () => {
               <>
                 <GenerateRecipeButton />
                 <SavedRecipesButton />
-                <BlogButton />
+                <DiscoverRecipesButton />
               </>
             )}
           </div>

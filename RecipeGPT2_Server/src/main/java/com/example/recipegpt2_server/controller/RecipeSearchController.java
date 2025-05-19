@@ -41,7 +41,7 @@ public class RecipeSearchController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String text) {
         try {
-            // Validate the token (but we don't need to use it for the query)
+            // Validate the token and get user ID
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("Authorization header with Bearer token is required");
@@ -54,8 +54,16 @@ public class RecipeSearchController {
                         .body("Invalid JWT token");
             }
 
-            // Proceed with fetching public recipes
-            List<Recipe> recipes = recipeRepository.fetchPublicRecipes(category, text);
+            // Get user ID
+            String userId = null;
+            java.util.Optional<com.example.recipegpt2_server.model.User> userOpt = userRepository
+                    .findByEmail(userEmail);
+            if (userOpt.isPresent()) {
+                userId = userOpt.get().getId();
+            }
+
+            // Proceed with fetching public recipes, excluding user's own and saved recipes
+            List<Recipe> recipes = recipeRepository.fetchPublicRecipes(userId, category, text);
             return ResponseEntity.ok(recipes);
         } catch (ExecutionException | InterruptedException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

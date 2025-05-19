@@ -141,6 +141,21 @@ export const recipeService = {
     );
     return response.data;
   },
+
+  getPublicRecipes: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.category) query.append("category", params.category);
+    if (params.text) query.append("text", params.text);
+    const response = await api.get(
+      `/api/recipes/public${query.toString() ? `?${query.toString()}` : ""}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    return response.data;
+  },
 };
 
 const API_BASE_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:8080";
