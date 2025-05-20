@@ -14,6 +14,28 @@ JSON format predefined by us. Users have to create accounts in order to be able 
 from a chatbot if they're trying to follow a recipe and get stuck. (small chance of implementing this too: the app will provide users with links from where they can buy the ingredients
 necessary for the recipe from close stores)
 
+### User Stories
+
+#### 1. Recipe Management
+As a cooking enthusiast, I want to save and organize my favorite recipes so that I can easily access them later. I should be able to:
+- Save recipes with detailed ingredients and instructions
+- View my saved recipes in a clean, organized interface
+- Edit or delete recipes as needed
+- Share recipes with other users
+
+#### 2. AI Cooking Assistant
+As a home cook, I want to get personalized help with my recipes so that I can improve my cooking skills. I should be able to:
+- Get instant answers to questions about my saved recipes
+- Receive suggestions for ingredient substitutions
+- Get help with cooking techniques and methods
+- Ask for clarification on recipe steps
+
+#### 3. Recipe Discovery
+As a user looking for new recipes, I want to discover and save new recipes so that I can expand my cooking repertoire. I should be able to:
+- Browse through a collection of recipes
+- Search for recipes by contents and cuisine type
+- Save interesting recipes to my collection
+
 ### Link to Trello Board:
 https://trello.com/b/E4HUtMB1/web-programming-2-project-trello-board
 
