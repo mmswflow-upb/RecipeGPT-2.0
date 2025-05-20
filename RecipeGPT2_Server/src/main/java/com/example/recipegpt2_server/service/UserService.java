@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -312,5 +313,16 @@ public class UserService implements UserDetailsService {
         
         // Save the updated user
         return userRepository.save(user);
+    }
+
+    /**
+     * Get a user by ID
+     * 
+     * @param userId The ID of the user to fetch
+     * @return Optional containing the User if found, or empty if not found
+     * @throws ExecutionException, InterruptedException If there's an error accessing Firestore
+     */
+    public Optional<User> getUserById(String userId) throws ExecutionException, InterruptedException {
+        return userRepository.findById(userId);
     }
 } 

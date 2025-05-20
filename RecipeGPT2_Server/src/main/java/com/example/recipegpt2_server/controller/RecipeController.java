@@ -5,6 +5,7 @@ import com.example.recipegpt2_server.model.User;
 import com.example.recipegpt2_server.model.RecipeQueryRequest;
 import com.example.recipegpt2_server.model.RecipeQueryResponse;
 import com.example.recipegpt2_server.service.RecipeService;
+import com.example.recipegpt2_server.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,9 @@ public class RecipeController {
 
         @Autowired
         private RecipeService recipeService;
+        
+        @Autowired
+        private UserService userService;
 
         private final RestTemplate restTemplate = new RestTemplate();
         private final String openAiApiKey;
@@ -293,6 +297,48 @@ public class RecipeController {
                 e.printStackTrace();
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body("Error deleting rating: " + e.getMessage());
+            }
+        }
+
+        /**
+         * Fetch a publisher's profile based on user ID
+         * Returns public information (username, email, bio, profile_pic, preferences) 
+         * only if the user exists and is a publisher
+         */
+        @GetMapping("/fetchPublisherProfile")
+        public ResponseEntity<?> fetchPublisherProfile(@RequestParam String userId) {
+            try {
+                // Get the user from repository by ID
+                Optional<User> userOptional = userService.getUserById(userId);
+                
+                // Check if user exists
+                if (userOptional.isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("User not found with ID: " + userId);
+                }
+                
+                User user = userOptional.get();
+                
+                // Check if user is a publisher
+                if (!user.isPublisher()) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body("User with ID: " + userId + " is not a publisher");
+                }
+                
+                // Return only public information
+                Map<String, Object> publisherProfile = new HashMap<>();
+                publisherProfile.put("username", user.getUsernameField());
+                publisherProfile.put("email", user.getEmail());
+                publisherProfile.put("bio", user.getBio());
+                publisherProfile.put("profile_pic", user.getProfile_pic());
+                publisherProfile.put("preferences", user.getPreferences());
+                
+                return ResponseEntity.ok(publisherProfile);
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error fetching publisher profile: " + e.getMessage());
             }
         }
 
