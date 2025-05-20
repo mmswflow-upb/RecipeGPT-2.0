@@ -30,6 +30,7 @@ const AIAssist = () => {
   const messagesEndRef = useRef(null);
   const initialMessageAdded = useRef(false);
   const isMounted = useRef(true);
+  const mountCount = useRef(0);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -41,24 +42,20 @@ const AIAssist = () => {
 
   // Fetch recipe only once when component mounts
   useEffect(() => {
+    mountCount.current += 1;
+
+    // Only proceed with initialization on the second mount (strict mode)
+    if (mountCount.current === 1) {
+      return;
+    }
+
     const recipeFromState = location.state?.recipe;
     if (recipeFromState) {
       updateRecipe(recipeFromState);
     } else if (!recipe) {
       const fetchRecipe = async () => {
         try {
-          const response = await fetch(
-            `${
-              import.meta.env.VITE_SERVER_URL || "http://localhost:8080"
-            }/api/recipes/${id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-          if (!response.ok) throw new Error("Failed to fetch recipe");
-          const recipeData = await response.json();
+          const recipeData = await userService.getRecipeById(id);
           if (isMounted.current) {
             updateRecipe(recipeData);
           }
@@ -76,7 +73,12 @@ const AIAssist = () => {
 
   // Add initial message only once when recipe is available
   useEffect(() => {
-    if (!initialMessageAdded.current && recipe && messages.length === 0) {
+    if (
+      !initialMessageAdded.current &&
+      recipe &&
+      messages.length === 0 &&
+      mountCount.current > 1
+    ) {
       addMessage({
         type: "bot",
         content: `Hello! I'll help you with your recipe "${recipe.title}". What would you like to know?`,
@@ -86,7 +88,7 @@ const AIAssist = () => {
   }, [recipe, messages.length, addMessage]);
 
   const handleSendMessage = async (message) => {
-    if (!isMounted.current) {
+    if (!isMounted.current || mountCount.current <= 1) {
       return;
     }
 
@@ -134,9 +136,12 @@ const AIAssist = () => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      isMounted.current = false;
-      initialMessageAdded.current = false;
-      clearChat();
+      // Only clear chat on final unmount
+      if (mountCount.current > 1) {
+        isMounted.current = false;
+        initialMessageAdded.current = false;
+        clearChat();
+      }
     };
   }, [clearChat]);
 

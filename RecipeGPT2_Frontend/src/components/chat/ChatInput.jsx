@@ -11,7 +11,6 @@ const ChatInput = ({ onSend, isLoading }) => {
     if (message.trim() && !isLoading) {
       onSend(message);
       setMessage("");
-    } else {
     }
   };
 
