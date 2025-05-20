@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_SERVER_URL,
+  baseURL: import.meta.env.VITE_SERVER_URL || "http://localhost:8080",
   headers: {
     "Content-Type": "application/json",
   },
@@ -14,6 +14,8 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Log the full request URL and payload
+
     return config;
   },
   (error) => {
@@ -23,10 +25,15 @@ api.interceptors.request.use(
 
 // Add a response interceptor to handle common errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful responses
+
+    return response;
+  },
   (error) => {
+    // Log error responses
+
     if (error.response?.status === 401) {
-      // Only clear the token and user data, don't redirect
       localStorage.removeItem("token");
       localStorage.removeItem("user");
     }
@@ -93,6 +100,27 @@ export const userService = {
   updateProfile: async (data) => {
     const response = await api.put("/api/users/profile", data);
     return response.data;
+  },
+
+  getAIResponse: async (recipeId, message, conversationSummary) => {
+    try {
+      const response = await api.post("/api/queryRecipe", {
+        recipeId,
+        userRequest: message,
+        conversationSummary,
+      });
+
+      if (!response.data.responseToUser || !response.data.summaryOfConvo) {
+        throw new Error("Invalid response format from server");
+      }
+
+      return {
+        message: response.data.responseToUser,
+        summary: response.data.summaryOfConvo,
+      };
+    } catch (error) {
+      throw error;
+    }
   },
 };
 
