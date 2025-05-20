@@ -1,34 +1,20 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
-import { useAuth } from "../contexts/AuthContext";
 import { getDefaultImage } from "../utils/categoryImageMap";
 import servingIcon from "../assets/logos/serving.png";
 import clockIcon from "../assets/logos/clock.png";
 import cookingIcon from "../assets/logos/cooking.png";
-import recipeBookIcon from "../assets/logos/recipe-book.png";
-import savedIcon from "../assets/logos/saved.png";
 import starIcon from "../assets/logos/star.png";
 
-const SavedRecipeCard = ({ recipe }) => {
+const DiscoverRecipeCard = ({ recipe }) => {
   const { theme } = useTheme();
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const handleViewDetails = (e) => {
     e.stopPropagation();
-    navigate(`/saved/recipe/${recipe.id}`, { state: { recipe } });
+    navigate(`/recipe/${recipe.id}`, { state: { recipe } });
   };
-
-  // Determine which icon to show
-  const isOwner = recipe.isUserOwner;
-  const icon = isOwner ? recipeBookIcon : savedIcon;
-  const iconAlt = isOwner ? "Your Recipe" : "Saved Recipe";
-  const iconFilter = isOwner
-    ? "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)"
-    : theme === "light"
-    ? "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)"
-    : "brightness(0) invert(1)";
 
   return (
     <div
@@ -43,14 +29,6 @@ const SavedRecipeCard = ({ recipe }) => {
           alt={recipe.title}
           className="w-full h-40 object-cover rounded-t-lg"
         />
-        <div className="absolute top-2 right-2 bg-white/80 rounded-full p-1">
-          <img
-            src={icon}
-            alt={iconAlt}
-            className="w-6 h-6 object-contain"
-            style={{ filter: iconFilter }}
-          />
-        </div>
       </div>
 
       <div className="p-4">
@@ -189,4 +167,4 @@ const SavedRecipeCard = ({ recipe }) => {
   );
 };
 
-export default SavedRecipeCard;
+export default DiscoverRecipeCard;

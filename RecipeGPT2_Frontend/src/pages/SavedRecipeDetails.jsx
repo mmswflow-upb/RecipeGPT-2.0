@@ -15,6 +15,8 @@ import binIcon from "../assets/logos/bin.png";
 import cameraIcon from "../assets/logos/camera.png";
 import globalIcon from "../assets/logos/global.png";
 import lockIcon from "../assets/logos/lock.png";
+import starIcon from "../assets/logos/star.png";
+import aiAssistIcon from "../assets/logos/ai-assist.png";
 import { userService } from "../services/api";
 
 const SavedRecipeDetails = () => {
@@ -366,7 +368,25 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                     )}
                   </div>
                 ) : (
-                  displayData.title
+                  <div className="flex items-center justify-between">
+                    <span>{displayData.title}</span>
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={starIcon}
+                        alt="Rating"
+                        className="w-6 h-6 object-contain"
+                        style={{
+                          filter:
+                            "brightness(0) saturate(100%) invert(76%) sepia(61%) saturate(1012%) hue-rotate(358deg) brightness(103%) contrast(107%)",
+                        }}
+                      />
+                      <span className="text-2xl font-medium text-[#FFB800]">
+                        {displayData.rating
+                          ? displayData.rating.toFixed(1)
+                          : "N/A"}
+                      </span>
+                    </div>
+                  </div>
                 )}
               </h1>
               <div
@@ -1052,6 +1072,21 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                     }}
                   />
                   <span>Copy Recipe</span>
+                </button>
+                <button
+                  onClick={() =>
+                    navigate(`/ai-assist/${displayData.id}`, {
+                      state: { recipe: displayData },
+                    })
+                  }
+                  className="bg-[#6366F1] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 flex items-center space-x-2"
+                >
+                  <img
+                    src={aiAssistIcon}
+                    alt="AI Assist"
+                    className="w-5 h-5 filter brightness-0 invert"
+                  />
+                  <span>AI Assist</span>
                 </button>
                 {/* Delete button */}
                 <button

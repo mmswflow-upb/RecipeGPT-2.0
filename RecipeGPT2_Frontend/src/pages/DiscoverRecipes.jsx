@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PageLayout from "../components/PageLayout";
-import RecipeCard from "../components/RecipeCard";
+import DiscoverRecipeCard from "../components/DiscoverRecipeCard";
 import { useTheme } from "../contexts/ThemeContext";
 import searchIcon from "../assets/logos/recipe.png";
 import Pagination from "../components/Pagination";
@@ -162,7 +162,10 @@ const DiscoverRecipes = () => {
                   </div>
                 ) : (
                   paginatedRecipes.map((recipe, idx) => (
-                    <RecipeCard key={recipe.id || idx} recipe={recipe} />
+                    <DiscoverRecipeCard
+                      key={recipe.id || idx}
+                      recipe={recipe}
+                    />
                   ))
                 )}
               </div>
