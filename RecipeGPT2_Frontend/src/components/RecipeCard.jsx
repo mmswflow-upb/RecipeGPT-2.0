@@ -39,11 +39,8 @@ const RecipeCard = ({ recipe, selected, onSelect, index }) => {
             alt={selected ? "Selected" : "Not Selected"}
             className="w-6 h-6 object-contain"
             style={{
-              filter: selected
-                ? "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)"
-                : theme === "light"
-                ? "brightness(0) saturate(100%) invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(90%)"
-                : "brightness(0) invert(1)",
+              filter:
+                "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)",
             }}
           />
         </div>

@@ -145,6 +145,20 @@ export const userService = {
       throw error;
     }
   },
+
+  saveRecipes: async (recipeIds) => {
+    const response = await api.put("/api/users/saved-recipes", {
+      recipeIds: recipeIds,
+    });
+    return response.data;
+  },
+
+  deleteSavedRecipes: async (recipeIds) => {
+    const response = await api.post("/api/users/delete-saved-recipes", {
+      recipeIds: recipeIds,
+    });
+    return response.data;
+  },
 };
 
 export const recipeService = {

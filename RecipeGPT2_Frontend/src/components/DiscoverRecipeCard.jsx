@@ -1,16 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
+import { useAuth } from "../contexts/AuthContext";
 import { getDefaultImage } from "../utils/categoryImageMap";
+import { userService } from "../services/api";
 import servingIcon from "../assets/logos/serving.png";
 import clockIcon from "../assets/logos/clock.png";
 import cookingIcon from "../assets/logos/cooking.png";
 import starIcon from "../assets/logos/star.png";
 import profilePic from "../assets/logos/profile.png";
+import unsavedIcon from "../assets/logos/unsaved.png";
+import savedIcon from "../assets/logos/saved.png";
 
-const DiscoverRecipeCard = ({ recipe }) => {
+const DiscoverRecipeCard = ({ recipe, onRecipeSaved }) => {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   const handleViewDetails = (e) => {
     e.stopPropagation();
@@ -33,6 +40,34 @@ const DiscoverRecipeCard = ({ recipe }) => {
     });
   };
 
+  const handleSaveRecipe = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      if (isSaved) {
+        // Delete the saved recipe using userService
+        await userService.deleteSavedRecipes([recipe.id]);
+        setIsSaved(false);
+      } else {
+        // Save the recipe
+        await userService.saveRecipes([recipe.id]);
+        setIsSaved(true);
+      }
+      if (onRecipeSaved) {
+        onRecipeSaved();
+      }
+    } catch (error) {
+      console.error("Error saving/unsaving recipe:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div
       className={`rounded-lg shadow-lg border-transparent ${
@@ -46,6 +81,21 @@ const DiscoverRecipeCard = ({ recipe }) => {
           alt={recipe.title}
           className="w-full h-40 object-cover rounded-t-lg"
         />
+        {/* Save Button */}
+        <div
+          onClick={handleSaveRecipe}
+          className={`absolute top-2 right-2 bg-white/80 rounded-full p-1 cursor-pointer hover:opacity-80 transition-all duration-200`}
+        >
+          <img
+            src={isSaved ? savedIcon : unsavedIcon}
+            alt={isSaved ? "Recipe Saved" : "Save Recipe"}
+            className="w-6 h-6 object-contain"
+            style={{
+              filter:
+                "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)",
+            }}
+          />
+        </div>
       </div>
 
       <div className="p-4">

@@ -159,8 +159,8 @@ const AIAssist = () => {
     <PageLayout>
       <div
         className={`container mx-auto px-4 py-8 mb-16 ${
-          theme === "dark" ? "bg-[#1a1a1a]" : "bg-[#FFFDF9]"
-        } rounded-3xl`}
+          theme === "dark" ? "bg-[#222]" : "bg-[#FFFDF9]"
+        } rounded-3xl min-h-[calc(100vh-280px)]`}
       >
         <div id="recipe-details" className="max-w-4xl mx-auto">
           <div className="mb-6">
@@ -207,10 +207,10 @@ const AIAssist = () => {
           </div>
 
           <div
-            className={`bg-white rounded-xl shadow-sm border ${
+            className={`rounded-xl shadow-sm border ${
               theme === "dark"
-                ? "border-gray-700 bg-gray-800"
-                : "border-gray-100"
+                ? "border-gray-700 bg-gray-900"
+                : "border-gray-100 bg-white"
             } h-[calc(100vh-280px)] flex flex-col`}
           >
             <div className="flex-1 overflow-y-auto p-4 space-y-4">

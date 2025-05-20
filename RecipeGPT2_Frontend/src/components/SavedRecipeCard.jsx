@@ -41,11 +41,8 @@ const SavedRecipeCard = ({ recipe }) => {
   const isOwner = recipe.isUserOwner;
   const icon = isOwner ? recipeBookIcon : savedIcon;
   const iconAlt = isOwner ? "Your Recipe" : "Saved Recipe";
-  const iconFilter = isOwner
-    ? "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)"
-    : theme === "light"
-    ? "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)"
-    : "brightness(0) invert(1)";
+  const iconFilter =
+    "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)";
 
   return (
     <div

@@ -218,24 +218,14 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
           }
         );
       } else {
+        // Use the userService to delete saved recipes
+        await userService.deleteSavedRecipes([displayData.id]);
+
+        // Update local user data
         const user = JSON.parse(localStorage.getItem("user"));
-        const savedRecipes = (user?.savedRecipes || []).filter(
+        user.savedRecipes = (user?.savedRecipes || []).filter(
           (id) => id !== displayData.id
         );
-        await fetch(
-          `${
-            import.meta.env.VITE_SERVER_URL || "http://localhost:8080"
-          }/api/users/saved-recipes`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({ savedRecipes }),
-          }
-        );
-        user.savedRecipes = savedRecipes;
         localStorage.setItem("user", JSON.stringify(user));
       }
       navigate("/saved");
