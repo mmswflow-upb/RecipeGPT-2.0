@@ -108,8 +108,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/randomQuote").permitAll()
                         .requestMatchers("/api/fetchPublisherProfile").permitAll()
-                        // WebSocket handshake & SockJS endpoints
-                        .requestMatchers("/ws/**").permitAll()
                         // Allow CORS preflight for any path
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Everything else requires authentication
