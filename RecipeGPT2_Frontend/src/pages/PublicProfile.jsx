@@ -29,7 +29,6 @@ const PublicProfile = () => {
 
         // Otherwise fetch from API
         const data = await userService.getPublisherProfile(userId);
-        console.log("Fetched profile data:", data); // Debug log
         setProfile(data);
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -66,8 +65,6 @@ const PublicProfile = () => {
       </PageLayout>
     );
   }
-
-  console.log("Rendering profile:", profile); // Debug log
 
   return (
     <PageLayout>
