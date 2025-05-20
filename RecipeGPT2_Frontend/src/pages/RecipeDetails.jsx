@@ -9,6 +9,7 @@ import clockIcon from "../assets/logos/clock.png";
 import cookingIcon from "../assets/logos/cooking.png";
 import servingIcon from "../assets/logos/serving.png";
 import copyingIcon from "../assets/logos/copying.png";
+import starIcon from "../assets/logos/star.png";
 
 const RecipeDetails = () => {
   const { id } = useParams();
@@ -90,7 +91,23 @@ ${recipe.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                   theme === "dark" ? "text-white" : "text-[#1D1D1D]"
                 }`}
               >
-                {recipe.title}
+                <div className="flex items-center justify-between">
+                  <span>{recipe.title}</span>
+                  <div className="flex items-center space-x-2">
+                    <img
+                      src={starIcon}
+                      alt="Rating"
+                      className="w-6 h-6 object-contain"
+                      style={{
+                        filter:
+                          "brightness(0) saturate(100%) invert(76%) sepia(61%) saturate(1012%) hue-rotate(358deg) brightness(103%) contrast(107%)",
+                      }}
+                    />
+                    <span className="text-2xl font-medium text-[#FFB800]">
+                      {recipe.rating ? recipe.rating.toFixed(1) : "N/A"}
+                    </span>
+                  </div>
+                </div>
               </h1>
               <div
                 className={`flex flex-col space-y-4 mb-6 ${

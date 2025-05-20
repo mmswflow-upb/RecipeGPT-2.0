@@ -20,6 +20,7 @@ import SavedRecipeDetails from "./pages/SavedRecipeDetails";
 import DiscoverRecipes from "./pages/DiscoverRecipes";
 import CreateRecipe from "./pages/CreateRecipe";
 import AIAssist from "./pages/AIAssist";
+import PublicProfile from "./pages/PublicProfile";
 import "./App.css";
 
 function App() {
@@ -89,6 +90,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/profile/:userId" element={<PublicProfile />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </ChatProvider>

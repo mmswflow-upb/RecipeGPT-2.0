@@ -9,6 +9,7 @@ import cookingIcon from "../assets/logos/cooking.png";
 import recipeBookIcon from "../assets/logos/recipe-book.png";
 import savedIcon from "../assets/logos/saved.png";
 import starIcon from "../assets/logos/star.png";
+import profilePic from "../assets/logos/profile.png";
 
 const SavedRecipeCard = ({ recipe }) => {
   const { theme } = useTheme();
@@ -18,6 +19,22 @@ const SavedRecipeCard = ({ recipe }) => {
   const handleViewDetails = (e) => {
     e.stopPropagation();
     navigate(`/saved/recipe/${recipe.id}`, { state: { recipe } });
+  };
+
+  const handlePublisherClick = (e) => {
+    e.stopPropagation();
+    navigate(`/profile/${recipe.publisherId}`, {
+      state: {
+        publisher: {
+          id: recipe.publisherId,
+          username: recipe.publisherName,
+          profile_pic: recipe.publisherProfilePic,
+          email: recipe.publisherEmail,
+          bio: recipe.publisherBio,
+          preferences: recipe.publisherPreferences,
+        },
+      },
+    });
   };
 
   // Determine which icon to show
@@ -54,6 +71,31 @@ const SavedRecipeCard = ({ recipe }) => {
       </div>
 
       <div className="p-4">
+        {/* Publisher Info */}
+        {!isOwner && recipe.publisherId && (
+          <div
+            className="flex items-center space-x-2 mb-3 cursor-pointer transition-colors focus:outline-none bg-transparent border-none"
+            onClick={handlePublisherClick}
+          >
+            <img
+              src={recipe.publisherProfilePic || profilePic}
+              alt={recipe.publisherName}
+              className={`w-6 h-6 object-contain rounded-full ${
+                theme === "light" ? "" : "brightness-0 invert"
+              }`}
+            />
+            <span
+              className={`text-sm ${
+                theme === "light"
+                  ? "text-[#1D1D1D] hover:text-[#E63946]"
+                  : "text-white hover:text-[#E63946]"
+              }`}
+            >
+              {recipe.publisherName}
+            </span>
+          </div>
+        )}
+
         <h2
           className={`text-xl font-bold mb-4 ${
             theme === "light" ? "text-black" : "text-white"

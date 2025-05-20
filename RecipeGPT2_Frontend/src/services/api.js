@@ -122,6 +122,29 @@ export const userService = {
       throw error;
     }
   },
+
+  getPublisherProfile: async (userId) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/fetchPublisherProfile?userId=${userId}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch publisher profile");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching publisher profile:", error);
+      throw error;
+    }
+  },
 };
 
 export const recipeService = {
@@ -167,7 +190,43 @@ export const recipeService = {
     const response = await api.get(
       `/api/recipes/saved${query.toString() ? `?${query.toString()}` : ""}`
     );
-    return response.data;
+
+    // Fetch user data for each recipe
+    const recipesWithUserData = await Promise.all(
+      response.data.map(async (recipe) => {
+        try {
+          const userResponse = await api.get(
+            `/api/fetchPublisherProfile?userId=${recipe.userId}`
+          );
+          const userData = userResponse.data;
+          return {
+            ...recipe,
+            publisherId: recipe.userId,
+            publisherName: userData.username,
+            publisherProfilePic: userData.profile_pic,
+            publisherEmail: userData.email,
+            publisherBio: userData.bio,
+            publisherPreferences: userData.preferences,
+          };
+        } catch (error) {
+          console.error(
+            `Error fetching user data for recipe ${recipe.id}:`,
+            error
+          );
+          return {
+            ...recipe,
+            publisherId: recipe.userId,
+            publisherName: "Unknown User",
+            publisherProfilePic: null,
+            publisherEmail: null,
+            publisherBio: null,
+            publisherPreferences: [],
+          };
+        }
+      })
+    );
+
+    return recipesWithUserData;
   },
 
   getPublicRecipes: async (params = {}) => {
@@ -182,7 +241,43 @@ export const recipeService = {
         },
       }
     );
-    return response.data;
+
+    // Fetch user data for each recipe
+    const recipesWithUserData = await Promise.all(
+      response.data.map(async (recipe) => {
+        try {
+          const userResponse = await api.get(
+            `/api/fetchPublisherProfile?userId=${recipe.userId}`
+          );
+          const userData = userResponse.data;
+          return {
+            ...recipe,
+            publisherId: recipe.userId,
+            publisherName: userData.username,
+            publisherProfilePic: userData.profile_pic,
+            publisherEmail: userData.email,
+            publisherBio: userData.bio,
+            publisherPreferences: userData.preferences,
+          };
+        } catch (error) {
+          console.error(
+            `Error fetching user data for recipe ${recipe.id}:`,
+            error
+          );
+          return {
+            ...recipe,
+            publisherId: recipe.userId,
+            publisherName: "Unknown User",
+            publisherProfilePic: null,
+            publisherEmail: null,
+            publisherBio: null,
+            publisherPreferences: [],
+          };
+        }
+      })
+    );
+
+    return recipesWithUserData;
   },
 };
 
