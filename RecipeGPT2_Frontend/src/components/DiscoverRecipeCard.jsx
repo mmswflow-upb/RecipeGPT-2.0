@@ -11,6 +11,7 @@ import starIcon from "../assets/logos/star.png";
 import profilePic from "../assets/logos/profile.png";
 import unsavedIcon from "../assets/logos/unsaved.png";
 import savedIcon from "../assets/logos/saved.png";
+import PublisherInfo from "./PublisherInfo";
 
 const DiscoverRecipeCard = ({ recipe, onRecipeSaved }) => {
   const { theme } = useTheme();
@@ -22,22 +23,6 @@ const DiscoverRecipeCard = ({ recipe, onRecipeSaved }) => {
   const handleViewDetails = (e) => {
     e.stopPropagation();
     navigate(`/recipe/${recipe.id}`, { state: { recipe } });
-  };
-
-  const handlePublisherClick = (e) => {
-    e.stopPropagation();
-    navigate(`/profile/${recipe.publisherId}`, {
-      state: {
-        publisher: {
-          id: recipe.publisherId,
-          username: recipe.publisherName,
-          profile_pic: recipe.publisherProfilePic,
-          email: recipe.publisherEmail,
-          bio: recipe.publisherBio,
-          preferences: recipe.publisherPreferences,
-        },
-      },
-    });
   };
 
   const handleSaveRecipe = async (e) => {
@@ -101,27 +86,16 @@ const DiscoverRecipeCard = ({ recipe, onRecipeSaved }) => {
       <div className="p-4">
         {/* Publisher Info */}
         {recipe.publisherId && (
-          <div
-            className="flex items-center space-x-2 mb-3 cursor-pointer transition-colors focus:outline-none bg-transparent border-none"
-            onClick={handlePublisherClick}
-          >
-            <img
-              src={recipe.publisherProfilePic || profilePic}
-              alt={recipe.publisherName}
-              className={`w-6 h-6 object-contain rounded-full ${
-                theme === "light" ? "" : "brightness-0 invert"
-              }`}
-            />
-            <span
-              className={`text-sm ${
-                theme === "light"
-                  ? "text-[#1D1D1D] hover:text-[#E63946]"
-                  : "text-white hover:text-[#E63946]"
-              }`}
-            >
-              {recipe.publisherName}
-            </span>
-          </div>
+          <PublisherInfo
+            publisher={{
+              id: recipe.publisherId,
+              username: recipe.publisherName,
+              profile_pic: recipe.publisherProfilePic,
+              email: recipe.publisherEmail,
+              bio: recipe.publisherBio,
+              preferences: recipe.publisherPreferences,
+            }}
+          />
         )}
 
         <h2

@@ -18,6 +18,7 @@ import lockIcon from "../assets/logos/lock.png";
 import starIcon from "../assets/logos/star.png";
 import aiAssistIcon from "../assets/logos/ai-assist.png";
 import { userService } from "../services/api";
+import PublisherInfo from "../components/PublisherInfo";
 
 const SavedRecipeDetails = () => {
   const { id } = useParams();
@@ -323,6 +324,19 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
             </div>
 
             <div id="recipe-info" className="mb-8">
+              {/* Publisher Info */}
+              {!displayData.isUserOwner && displayData.publisherId && (
+                <PublisherInfo
+                  publisher={{
+                    id: displayData.publisherId,
+                    username: displayData.publisherName,
+                    profile_pic: displayData.publisherProfilePic,
+                    email: displayData.publisherEmail,
+                    bio: displayData.publisherBio,
+                    preferences: displayData.publisherPreferences,
+                  }}
+                />
+              )}
               <h1
                 className={`text-3xl font-bold mb-4 ${
                   theme === "dark" ? "text-white" : "text-[#1D1D1D]"
