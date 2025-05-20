@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -80,6 +81,10 @@ public class RecipeRepository {
             // If category matches, check if text matches any of title, ingredients, or
             // instructions
             if (matchesText(recipe, text)) {
+                // For public recipes, only include the average rating
+                recipe.setRatingList(null);
+                recipe.setNumOfRatings(0);
+                recipe.setTotalSumRatings(0.0);
                 matchingRecipes.add(recipe);
             }
         }
@@ -124,22 +129,15 @@ public class RecipeRepository {
 
                 if (document.exists()) {
                     Recipe recipe = Recipe.fromMap(document.getData(), document.getId());
-
-                    // Check if recipe has the matching category
-                    if (!hasMatchingCategory(recipe, category)) {
-                        continue; // Skip this recipe if no matching category
-                    }
-
-                    // If category matches, check if text matches any of title, ingredients, or
-                    // instructions
-                    if (matchesText(recipe, text)) {
+                    if (hasMatchingCategory(recipe, category) && matchesText(recipe, text)) {
+                        // For user's own recipes, include all rating info
                         matchingRecipes.add(recipe);
                     }
                 }
             }
         }
 
-        // Get recipes from the user's savedRecipes list
+        // Get saved recipes using savedRecipes attribute
         if (savedRecipeIds != null && !savedRecipeIds.isEmpty()) {
             for (String recipeId : savedRecipeIds) {
                 DocumentSnapshot document = firestore.collection(RECIPES_COLLECTION)
@@ -149,20 +147,20 @@ public class RecipeRepository {
 
                 if (document.exists()) {
                     Recipe recipe = Recipe.fromMap(document.getData(), document.getId());
-
-                    // Check if recipe has the matching category
-                    if (!hasMatchingCategory(recipe, category)) {
-                        continue; // Skip this recipe if no matching category
-                    }
-
-                    // If category matches, check if text matches any of title, ingredients, or
-                    // instructions
-                    if (matchesText(recipe, text)) {
-                        // Avoid adding duplicates (in case a user's recipe is also in their
-                        // savedRecipes)
-                        if (!matchingRecipes.stream().anyMatch(r -> r.getId().equals(recipe.getId()))) {
-                            matchingRecipes.add(recipe);
+                    if (hasMatchingCategory(recipe, category) && matchesText(recipe, text)) {
+                        // For saved recipes, only include the user's rating
+                        Double userRating = null;
+                        if (recipe.getRatingList() != null && recipe.getRatingList().containsKey(user.getId())) {
+                            userRating = recipe.getRatingList().get(user.getId());
                         }
+                        recipe.setRatingList(null); // Remove ratingList from response
+                        recipe.setNumOfRatings(0);
+                        recipe.setTotalSumRatings(0.0);
+                        // Add userRating as a separate field
+                        Map<String, Object> recipeMap = recipe.toMap();
+                        recipeMap.put("userRating", userRating);
+                        recipe = Recipe.fromMap(recipeMap, recipe.getId());
+                        matchingRecipes.add(recipe);
                     }
                 }
             }

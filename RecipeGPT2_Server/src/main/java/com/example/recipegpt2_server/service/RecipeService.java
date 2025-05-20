@@ -37,7 +37,7 @@ public class RecipeService {
     public Recipe saveRecipe(Recipe recipe) throws ExecutionException, InterruptedException {
         Firestore firestore = FirestoreClient.getFirestore();
         Map<String, Object> recipeMap = recipe.toMap();
-        
+
         // Initialize rating fields if they're new recipes
         if (recipe.getId() == null) {
             recipe.setNumOfRatings(0);
@@ -288,44 +288,45 @@ public class RecipeService {
      * Add a user rating to a recipe
      * 
      * @param recipeId The recipe ID
-     * @param rating New rating value (1.0 - 5.0)
-     * @param userId The ID of the user who is rating the recipe
+     * @param rating   New rating value (1.0 - 5.0)
+     * @param userId   The ID of the user who is rating the recipe
      * @return Updated recipe with new rating
-     * @throws SecurityException If the user tries to rate their own recipe or if the recipe is not public
+     * @throws SecurityException If the user tries to rate their own recipe or if
+     *                           the recipe is not public
      */
-    public Recipe addRatingToRecipe(String recipeId, double rating, String userId) 
+    public Recipe addRatingToRecipe(String recipeId, double rating, String userId)
             throws ExecutionException, InterruptedException, SecurityException {
         if (rating < 1.0 || rating > 5.0) {
             throw new IllegalArgumentException("Rating must be between 1.0 and 5.0");
         }
 
         Firestore firestore = FirestoreClient.getFirestore();
-        
+
         // Get the recipe to check if it's public and not owned by the current user
         Recipe recipe = getRecipeById(recipeId);
         if (recipe == null) {
             throw new IllegalArgumentException("Recipe not found with ID: " + recipeId);
         }
-        
+
         // Check if the recipe is public
         if (!recipe.isPublic()) {
             throw new SecurityException("Cannot rate a private recipe");
         }
-        
+
         // Check if the user is trying to rate their own recipe
         if (recipe.getUserId() != null && recipe.getUserId().equals(userId)) {
             throw new SecurityException("Users cannot rate their own recipes");
         }
-        
+
         // Initialize ratingList if null
         if (recipe.getRatingList() == null) {
             recipe.setRatingList(new HashMap<>());
         }
-        
+
         double newTotalSumRatings = recipe.getTotalSumRatings();
         int newNumOfRatings = recipe.getNumOfRatings();
         double newAverageRating;
-        
+
         // Check if the user has already rated this recipe
         if (recipe.getRatingList().containsKey(userId)) {
             // User has already rated - update their rating
@@ -337,10 +338,10 @@ public class RecipeService {
             newTotalSumRatings += rating;
             newNumOfRatings += 1;
         }
-        
+
         // Store the new rating in the ratingList
         recipe.getRatingList().put(userId, rating);
-        
+
         // Calculate the new average rating
         if (newNumOfRatings > 0) {
             newAverageRating = newTotalSumRatings / newNumOfRatings;
@@ -349,19 +350,19 @@ public class RecipeService {
         } else {
             newAverageRating = 0.0;
         }
-        
+
         // Update the recipe document
         Map<String, Object> updates = new HashMap<>();
         updates.put("totalSumRatings", newTotalSumRatings);
         updates.put("numOfRatings", newNumOfRatings);
         updates.put("rating", newAverageRating);
         updates.put("ratingList", recipe.getRatingList());
-        
+
         firestore.collection(RECIPES_COLLECTION)
                 .document(recipeId)
                 .update(updates)
                 .get();
-        
+
         return getRecipeById(recipeId);
     }
 
@@ -369,47 +370,47 @@ public class RecipeService {
      * Delete a user's rating from a recipe
      * 
      * @param recipeId The recipe ID
-     * @param userId The ID of the user whose rating to delete
+     * @param userId   The ID of the user whose rating to delete
      * @return Updated recipe after removing the rating
      * @throws SecurityException If the recipe is not public
      */
-    public Recipe deleteRatingFromRecipe(String recipeId, String userId) 
+    public Recipe deleteRatingFromRecipe(String recipeId, String userId)
             throws ExecutionException, InterruptedException, SecurityException, IllegalArgumentException {
-        
+
         Firestore firestore = FirestoreClient.getFirestore();
-        
+
         // Get the recipe
         Recipe recipe = getRecipeById(recipeId);
         if (recipe == null) {
             throw new IllegalArgumentException("Recipe not found with ID: " + recipeId);
         }
-        
+
         // Check if the recipe is public
         if (!recipe.isPublic()) {
             throw new SecurityException("Cannot modify ratings for a private recipe");
         }
-        
+
         // Initialize ratingList if null
         if (recipe.getRatingList() == null) {
             throw new IllegalArgumentException("User has not rated this recipe");
         }
-        
+
         // Check if the user has rated this recipe
         if (!recipe.getRatingList().containsKey(userId)) {
             throw new IllegalArgumentException("User has not rated this recipe");
         }
-        
+
         // Get the user's rating
         double userRating = recipe.getRatingList().get(userId);
-        
+
         // Update rating metrics
         double newTotalSumRatings = recipe.getTotalSumRatings() - userRating;
         int newNumOfRatings = recipe.getNumOfRatings() - 1;
         double newAverageRating;
-        
+
         // Remove the rating from the list
         recipe.getRatingList().remove(userId);
-        
+
         // Calculate the new average rating
         if (newNumOfRatings > 0) {
             newAverageRating = newTotalSumRatings / newNumOfRatings;
@@ -418,19 +419,19 @@ public class RecipeService {
         } else {
             newAverageRating = 0.0;
         }
-        
+
         // Update the recipe document
         Map<String, Object> updates = new HashMap<>();
         updates.put("totalSumRatings", newTotalSumRatings);
         updates.put("numOfRatings", newNumOfRatings);
         updates.put("rating", newAverageRating);
         updates.put("ratingList", recipe.getRatingList());
-        
+
         firestore.collection(RECIPES_COLLECTION)
                 .document(recipeId)
                 .update(updates)
                 .get();
-        
+
         return getRecipeById(recipeId);
     }
 
@@ -504,8 +505,8 @@ public class RecipeService {
                 updates.put("public", updateRequest.getIsPublic());
             } else {
                 // For non-publishers, ignore the isPublic field
-                System
-                        .out.println("Non-publisher user attempted to change recipe's public status - ignoring this field");
+                System.out
+                        .println("Non-publisher user attempted to change recipe's public status - ignoring this field");
             }
         }
 

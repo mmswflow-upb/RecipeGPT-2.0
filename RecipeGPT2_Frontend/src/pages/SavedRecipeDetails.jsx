@@ -65,6 +65,10 @@ const SavedRecipeDetails = () => {
   const [deleteAlert, setDeleteAlert] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [saveAlert, setSaveAlert] = useState(null);
+  const [userRating, setUserRating] = useState(null);
+  const [ratingAlert, setRatingAlert] = useState(null);
+  const [showRatingInput, setShowRatingInput] = useState(false);
+  const [tempRating, setTempRating] = useState("");
 
   // Add click outside handler
   useEffect(() => {
@@ -90,13 +94,28 @@ const SavedRecipeDetails = () => {
   const recipe = location.state?.recipe || null;
 
   useEffect(() => {
-    if (recipe && recipe.id && formData === null && originalData === null) {
-      setFormData({ ...recipe, isPublic: recipe.public });
-      setOriginalData({ ...recipe, isPublic: recipe.public });
+    console.log("Initial Data:", {
+      recipe,
+      formData,
+      originalData,
+      hasRecipe: Boolean(recipe),
+      hasRecipeId: Boolean(recipe?.id),
+      ratingList: recipe?.ratingList,
+      user: user,
+      userId: user?.id,
+    });
+
+    if (recipe && recipe.id) {
+      // Ensure ratingList is initialized
+      const recipeWithRatingList = {
+        ...recipe,
+        isPublic: recipe.public,
+        ratingList: recipe.ratingList || {},
+      };
+      setFormData(recipeWithRatingList);
+      setOriginalData(recipeWithRatingList);
     }
-    // Only set on first mount, not on every recipe change
-    // eslint-disable-next-line
-  }, []);
+  }, [recipe, user]); // Add user as dependency
 
   if (!isAuthenticated) {
     navigate("/login", { replace: true });
@@ -115,6 +134,20 @@ const SavedRecipeDetails = () => {
 
   // Use formData for rendering, but fallback to recipe if formData is null
   const displayData = formData || recipe;
+
+  // Check if user has a rating
+  const hasUserRating = displayData?.userRating !== undefined;
+
+  // Debug logs
+  console.log("Rating UI State:", {
+    userRating: displayData?.userRating,
+    userId: user?.id,
+    hasUserRating,
+    currentRating: displayData?.userRating,
+    "UI will show": hasUserRating
+      ? "Rating Input & Delete Button"
+      : "Add Rating Button",
+  });
 
   const handleCopyRecipe = () => {
     const recipeText = `
@@ -282,6 +315,46 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
     }
   };
 
+  const handleRateRecipe = async (rating) => {
+    try {
+      await userService.rateRecipe(displayData.id, rating);
+      // Update the recipe with the new rating
+      const updatedRecipe = { ...displayData, userRating: rating };
+      setFormData(updatedRecipe);
+      setOriginalData(updatedRecipe);
+      setRatingAlert({
+        type: "success",
+        message: "Rating updated successfully!",
+      });
+    } catch (error) {
+      setRatingAlert({
+        type: "error",
+        message: "Failed to update rating. Please try again.",
+      });
+    }
+    setTimeout(() => setRatingAlert(null), 3000);
+  };
+
+  const handleDeleteRating = async () => {
+    try {
+      await userService.deleteRating(displayData.id);
+      // Update the recipe by removing the userRating
+      const updatedRecipe = { ...displayData, userRating: undefined };
+      setFormData(updatedRecipe);
+      setOriginalData(updatedRecipe);
+      setRatingAlert({
+        type: "success",
+        message: "Rating removed successfully!",
+      });
+    } catch (error) {
+      setRatingAlert({
+        type: "error",
+        message: "Failed to remove rating. Please try again.",
+      });
+    }
+    setTimeout(() => setRatingAlert(null), 3000);
+  };
+
   return (
     <PageLayout>
       <div
@@ -324,74 +397,186 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
             </div>
 
             <div id="recipe-info" className="mb-8">
-              {/* Publisher Info */}
+              {/* Publisher Info with Rating */}
               {!displayData.isUserOwner && displayData.publisherId && (
-                <PublisherInfo
-                  publisher={{
-                    id: displayData.publisherId,
-                    username: displayData.publisherName,
-                    profile_pic: displayData.publisherProfilePic,
-                    email: displayData.publisherEmail,
-                    bio: displayData.publisherBio,
-                    preferences: displayData.publisherPreferences,
-                  }}
-                />
-              )}
-              <h1
-                className={`text-3xl font-bold mb-4 ${
-                  theme === "dark" ? "text-white" : "text-[#1D1D1D]"
-                }`}
-              >
-                {displayData.isUserOwner && editMode ? (
-                  <div className="relative">
-                    <input
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-2 border ${
-                        theme === "dark"
-                          ? "border-gray-600 bg-[#333] text-white"
-                          : "border-gray-200 bg-white text-[#1D1D1D]"
-                      } rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none text-2xl font-bold`}
-                    />
-                    {hasChanges.title && (
-                      <button
-                        onClick={() => handleUndo("title")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-[#E63946] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent"
-                      >
-                        <img
-                          src={undoIcon}
-                          alt="Undo"
-                          className="w-4 h-4 object-contain inline"
-                          style={{
-                            filter:
-                              "brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2472%) hue-rotate(337deg) brightness(101%) contrast(97%)",
-                          }}
-                        />
-                      </button>
-                    )}
-                  </div>
-                ) : (
+                <div className="mb-4">
                   <div className="flex items-center justify-between">
-                    <span>{displayData.title}</span>
-                    <div className="flex items-center space-x-2">
+                    <PublisherInfo
+                      publisher={{
+                        id: displayData.publisherId,
+                        username: displayData.publisherName,
+                        profile_pic: displayData.publisherProfilePic,
+                        email: displayData.publisherEmail,
+                        bio: displayData.publisherBio,
+                        preferences: displayData.publisherPreferences,
+                      }}
+                    />
+                    <div className="flex items-center space-x-1">
+                      <span
+                        className={`text-sm ${
+                          theme === "dark" ? "text-gray-300" : "text-[#6C757D]"
+                        }`}
+                      >
+                        {displayData.rating
+                          ? displayData.rating.toFixed(1)
+                          : "N/A"}
+                      </span>
                       <img
                         src={starIcon}
                         alt="Rating"
-                        className="w-6 h-6 object-contain"
+                        className="w-4 h-4 object-contain"
                         style={{
                           filter:
                             "brightness(0) saturate(100%) invert(76%) sepia(61%) saturate(1012%) hue-rotate(358deg) brightness(103%) contrast(107%)",
                         }}
                       />
-                      <span className="text-2xl font-medium text-[#FFB800]">
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Add Rating Section for Saved Recipes */}
+              {!displayData.isUserOwner && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold mb-2">Your Rating</h3>
+                  <div className="flex items-center space-x-2">
+                    {hasUserRating ? (
+                      <>
+                        <input
+                          type="number"
+                          min="1"
+                          max="5"
+                          value={displayData.userRating}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            if (value >= 1 && value <= 5) {
+                              handleRateRecipe(value);
+                            }
+                          }}
+                          className={`w-12 px-2 py-1 border ${
+                            theme === "dark"
+                              ? "border-gray-600 bg-[#333] text-white"
+                              : "border-gray-200 bg-white text-[#1D1D1D]"
+                          } rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none`}
+                          disabled={displayData.isUserOwner}
+                        />
+                        <div className="flex items-center">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <img
+                              key={star}
+                              src={starIcon}
+                              alt="Rating"
+                              className="w-5 h-5 object-contain"
+                              style={{
+                                filter:
+                                  star <= displayData.userRating
+                                    ? "brightness(0) saturate(100%) invert(76%) sepia(61%) saturate(1012%) hue-rotate(358deg) brightness(103%) contrast(107%)"
+                                    : "opacity-30",
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <button
+                          onClick={handleDeleteRating}
+                          className="text-[#E63946] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent"
+                          disabled={displayData.isUserOwner}
+                        >
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      </>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        {!showRatingInput && (
+                          <button
+                            onClick={() => setShowRatingInput(true)}
+                            className="text-[#4CAF50] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent"
+                            disabled={displayData.isUserOwner}
+                          >
+                            <i className="fa-solid fa-plus"></i> Add Rating
+                          </button>
+                        )}
+                        {showRatingInput && (
+                          <>
+                            <input
+                              type="number"
+                              min="1"
+                              max="5"
+                              value={tempRating}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (
+                                  value === "" ||
+                                  (parseInt(value) >= 1 && parseInt(value) <= 5)
+                                ) {
+                                  setTempRating(value);
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  const value = parseInt(tempRating);
+                                  if (value >= 1 && value <= 5) {
+                                    handleRateRecipe(value);
+                                    setShowRatingInput(false);
+                                    setTempRating("");
+                                  }
+                                }
+                              }}
+                              className={`w-12 px-2 py-1 border ${
+                                theme === "dark"
+                                  ? "border-gray-600 bg-[#333] text-white"
+                                  : "border-gray-200 bg-white text-[#1D1D1D]"
+                              } rounded-lg focus:ring-2 focus:ring-[#E63946] focus:border-transparent outline-none`}
+                              placeholder="1-5"
+                              disabled={displayData.isUserOwner}
+                            />
+                            <button
+                              onClick={() => {
+                                setShowRatingInput(false);
+                                setTempRating("");
+                              }}
+                              className="text-[#E63946] hover:opacity-80 transition-all duration-200 focus:outline-none border-none outline-none hover:border-none hover:outline-none bg-transparent"
+                              disabled={displayData.isUserOwner}
+                            >
+                              <i className="fa-solid fa-xmark"></i>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <h1
+                className={`text-3xl font-bold mb-4 ${
+                  theme === "dark" ? "text-white" : "text-[#1D1D1D]"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{displayData.title}</span>
+                  {displayData.isUserOwner && (
+                    <div className="flex items-center space-x-1">
+                      <span
+                        className={`text-sm ${
+                          theme === "dark" ? "text-gray-300" : "text-[#6C757D]"
+                        }`}
+                      >
                         {displayData.rating
                           ? displayData.rating.toFixed(1)
                           : "N/A"}
                       </span>
+                      <img
+                        src={starIcon}
+                        alt="Rating"
+                        className="w-4 h-4 object-contain"
+                        style={{
+                          filter:
+                            "brightness(0) saturate(100%) invert(76%) sepia(61%) saturate(1012%) hue-rotate(358deg) brightness(103%) contrast(107%)",
+                        }}
+                      />
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </h1>
               <div
                 className={`flex flex-col space-y-4 mb-6 ${
@@ -1163,6 +1348,13 @@ ${displayData.instructions.map((inst, idx) => `${idx + 1}. ${inst}`).join("\n")}
                   }
                   message={saveAlert}
                   onClose={() => setSaveAlert(null)}
+                />
+              )}
+              {ratingAlert && (
+                <Alert
+                  type={ratingAlert.type}
+                  message={ratingAlert.message}
+                  onClose={() => setRatingAlert(null)}
                 />
               )}
             </div>

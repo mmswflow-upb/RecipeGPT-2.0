@@ -42,6 +42,7 @@ public class Recipe {
     private int numOfRatings;
     private double totalSumRatings;
     private Map<String, Double> ratingList;
+    private Double userRating;
 
     /**
      * Converts the Recipe object to a Map for Firestore storage
@@ -79,6 +80,9 @@ public class Recipe {
         map.put("numOfRatings", numOfRatings);
         map.put("totalSumRatings", totalSumRatings);
         map.put("ratingList", ratingList != null ? ratingList : new HashMap<>());
+        if (userRating != null) {
+            map.put("userRating", userRating);
+        }
 
         return map;
     }
@@ -130,45 +134,36 @@ public class Recipe {
         // Additional properties
         recipe.setImage((String) map.getOrDefault("image", ""));
 
+        // Handle rating fields
         Object ratingObj = map.get("rating");
-        if (ratingObj instanceof Double) {
-            recipe.setRating((Double) ratingObj);
-        } else if (ratingObj instanceof Long) {
-            recipe.setRating(((Long) ratingObj).doubleValue());
-        } else if (ratingObj instanceof Integer) {
-            recipe.setRating(((Integer) ratingObj).doubleValue());
-        } else {
-            recipe.setRating(0.0);
+        if (ratingObj instanceof Number) {
+            recipe.setRating(((Number) ratingObj).doubleValue());
         }
 
-        // Handle numOfRatings
         Object numOfRatingsObj = map.get("numOfRatings");
-        if (numOfRatingsObj instanceof Integer) {
-            recipe.setNumOfRatings((Integer) numOfRatingsObj);
-        } else if (numOfRatingsObj instanceof Long) {
-            recipe.setNumOfRatings(((Long) numOfRatingsObj).intValue());
-        } else {
-            recipe.setNumOfRatings(0);
+        if (numOfRatingsObj instanceof Number) {
+            recipe.setNumOfRatings(((Number) numOfRatingsObj).intValue());
         }
 
-        // Handle totalSumRatings
         Object totalSumRatingsObj = map.get("totalSumRatings");
-        if (totalSumRatingsObj instanceof Double) {
-            recipe.setTotalSumRatings((Double) totalSumRatingsObj);
-        } else if (totalSumRatingsObj instanceof Long) {
-            recipe.setTotalSumRatings(((Long) totalSumRatingsObj).doubleValue());
-        } else if (totalSumRatingsObj instanceof Integer) {
-            recipe.setTotalSumRatings(((Integer) totalSumRatingsObj).doubleValue());
-        } else {
-            recipe.setTotalSumRatings(0.0);
+        if (totalSumRatingsObj instanceof Number) {
+            recipe.setTotalSumRatings(((Number) totalSumRatingsObj).doubleValue());
         }
 
         // Handle ratingList
         Object ratingListObj = map.get("ratingList");
         if (ratingListObj instanceof Map) {
-            recipe.setRatingList((Map<String, Double>) ratingListObj);
+            @SuppressWarnings("unchecked")
+            Map<String, Double> ratingList = (Map<String, Double>) ratingListObj;
+            recipe.setRatingList(ratingList);
         } else {
             recipe.setRatingList(new HashMap<>());
+        }
+
+        // Handle userRating
+        Object userRatingObj = map.get("userRating");
+        if (userRatingObj instanceof Number) {
+            recipe.setUserRating(((Number) userRatingObj).doubleValue());
         }
 
         return recipe;

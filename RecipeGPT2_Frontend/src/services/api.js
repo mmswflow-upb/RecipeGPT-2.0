@@ -159,6 +159,18 @@ export const userService = {
     });
     return response.data;
   },
+
+  rateRecipe: async (recipeId, rating) => {
+    const response = await api.post(
+      `/api/rateRecipe?recipeId=${recipeId}&rating=${rating}`
+    );
+    return response.data;
+  },
+
+  deleteRating: async (recipeId) => {
+    const response = await api.delete(`/api/deleteRating?recipeId=${recipeId}`);
+    return response.data;
+  },
 };
 
 export const recipeService = {
