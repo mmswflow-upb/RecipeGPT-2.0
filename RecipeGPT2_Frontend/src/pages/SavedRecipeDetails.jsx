@@ -94,17 +94,6 @@ const SavedRecipeDetails = () => {
   const recipe = location.state?.recipe || null;
 
   useEffect(() => {
-    console.log("Initial Data:", {
-      recipe,
-      formData,
-      originalData,
-      hasRecipe: Boolean(recipe),
-      hasRecipeId: Boolean(recipe?.id),
-      ratingList: recipe?.ratingList,
-      user: user,
-      userId: user?.id,
-    });
-
     if (recipe && recipe.id) {
       // Ensure ratingList is initialized
       const recipeWithRatingList = {
@@ -137,17 +126,6 @@ const SavedRecipeDetails = () => {
 
   // Check if user has a rating
   const hasUserRating = displayData?.userRating !== undefined;
-
-  // Debug logs
-  console.log("Rating UI State:", {
-    userRating: displayData?.userRating,
-    userId: user?.id,
-    hasUserRating,
-    currentRating: displayData?.userRating,
-    "UI will show": hasUserRating
-      ? "Rating Input & Delete Button"
-      : "Add Rating Button",
-  });
 
   const handleCopyRecipe = () => {
     const recipeText = `

@@ -30,12 +30,28 @@ api.interceptors.response.use(
 
     return response;
   },
-  (error) => {
-    // Log error responses
-
+  async (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      // Try to validate the token
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const response = await api.get("/api/auth/validate-token", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!response.data.valid) {
+            // Token is invalid, log out
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+          }
+        }
+      } catch (validationError) {
+        // If validation fails, log out
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }
@@ -86,8 +102,24 @@ export const authService = {
   },
 
   validateToken: async () => {
-    const response = await api.get("/auth/validate");
-    return response.data;
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return false;
+
+      const response = await api.post(
+        "/api/auth/validate-token",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data.valid;
+    } catch (error) {
+      console.error("Token validation error:", error);
+      return false;
+    }
   },
 };
 
