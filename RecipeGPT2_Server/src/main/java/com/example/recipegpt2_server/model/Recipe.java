@@ -39,6 +39,9 @@ public class Recipe {
     // Additional properties
     private String image;
     private double rating;
+    private int numOfRatings;
+    private double totalSumRatings;
+    private Map<String, Double> ratingList;
 
     /**
      * Converts the Recipe object to a Map for Firestore storage
@@ -73,6 +76,9 @@ public class Recipe {
         // Additional properties
         map.put("image", image != null ? image : "");
         map.put("rating", rating);
+        map.put("numOfRatings", numOfRatings);
+        map.put("totalSumRatings", totalSumRatings);
+        map.put("ratingList", ratingList != null ? ratingList : new HashMap<>());
 
         return map;
     }
@@ -133,6 +139,36 @@ public class Recipe {
             recipe.setRating(((Integer) ratingObj).doubleValue());
         } else {
             recipe.setRating(0.0);
+        }
+
+        // Handle numOfRatings
+        Object numOfRatingsObj = map.get("numOfRatings");
+        if (numOfRatingsObj instanceof Integer) {
+            recipe.setNumOfRatings((Integer) numOfRatingsObj);
+        } else if (numOfRatingsObj instanceof Long) {
+            recipe.setNumOfRatings(((Long) numOfRatingsObj).intValue());
+        } else {
+            recipe.setNumOfRatings(0);
+        }
+
+        // Handle totalSumRatings
+        Object totalSumRatingsObj = map.get("totalSumRatings");
+        if (totalSumRatingsObj instanceof Double) {
+            recipe.setTotalSumRatings((Double) totalSumRatingsObj);
+        } else if (totalSumRatingsObj instanceof Long) {
+            recipe.setTotalSumRatings(((Long) totalSumRatingsObj).doubleValue());
+        } else if (totalSumRatingsObj instanceof Integer) {
+            recipe.setTotalSumRatings(((Integer) totalSumRatingsObj).doubleValue());
+        } else {
+            recipe.setTotalSumRatings(0.0);
+        }
+
+        // Handle ratingList
+        Object ratingListObj = map.get("ratingList");
+        if (ratingListObj instanceof Map) {
+            recipe.setRatingList((Map<String, Double>) ratingListObj);
+        } else {
+            recipe.setRatingList(new HashMap<>());
         }
 
         return recipe;

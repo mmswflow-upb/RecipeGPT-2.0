@@ -214,6 +214,88 @@ public class RecipeController {
                 }
         }
 
+        /**
+         * Rate a recipe endpoint
+         * Allows users to rate a recipe if:
+         * 1. The recipe is public
+         * 2. The user is not the creator of the recipe
+         */
+        @PostMapping("/rateRecipe")
+        public ResponseEntity<?> rateRecipe(
+                @RequestParam String recipeId,
+                @RequestParam double rating) {
+            
+            try {
+                // 1. Get the authenticated user from Spring Security context
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || !authentication.isAuthenticated()) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body("User not authenticated");
+                }
+                
+                User user = (User) authentication.getPrincipal();
+                
+                // 2. Add the rating to the recipe
+                Recipe updatedRecipe = recipeService.addRatingToRecipe(recipeId, rating, user.getId());
+                
+                // 3. Return a success response
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Recipe rated successfully");
+                response.put("recipe", updatedRecipe);
+                return ResponseEntity.ok(response);
+                
+            } catch (SecurityException e) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(e.getMessage());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error rating recipe: " + e.getMessage());
+            }
+        }
+
+        /**
+         * Delete a rating from a recipe endpoint
+         * Allows users to delete their own ratings from a recipe
+         */
+        @DeleteMapping("/deleteRating")
+        public ResponseEntity<?> deleteRating(@RequestParam String recipeId) {
+            
+            try {
+                // 1. Get the authenticated user from Spring Security context
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || !authentication.isAuthenticated()) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body("User not authenticated");
+                }
+                
+                User user = (User) authentication.getPrincipal();
+                
+                // 2. Delete the rating from the recipe
+                Recipe updatedRecipe = recipeService.deleteRatingFromRecipe(recipeId, user.getId());
+                
+                // 3. Return a success response
+                Map<String, Object> response = new HashMap<>();
+                response.put("message", "Rating deleted successfully");
+                response.put("recipe", updatedRecipe);
+                return ResponseEntity.ok(response);
+                
+            } catch (SecurityException e) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(e.getMessage());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error deleting rating: " + e.getMessage());
+            }
+        }
+
         // ----------------------
         // Internal Methods
         // ----------------------
