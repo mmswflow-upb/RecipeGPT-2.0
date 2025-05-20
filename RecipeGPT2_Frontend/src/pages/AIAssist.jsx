@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import { useChat } from "../contexts/ChatContext";
@@ -6,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 import PageLayout from "../components/PageLayout";
 import MessageBubble from "../components/chat/MessageBubble";
 import ChatInput from "../components/chat/ChatInput";
+import Alert from "../components/Alert";
 import { userService } from "../services/api";
 import robotLogo from "../assets/logos/robot.png";
 import forkAndKnifeLogo from "../assets/logos/fork-and-knife.png";
@@ -16,6 +17,7 @@ const AIAssist = () => {
   const location = useLocation();
   const { theme } = useTheme();
   const { user } = useAuth();
+  const [error, setError] = useState(null);
   const {
     messages,
     isLoading,
@@ -55,6 +57,7 @@ const AIAssist = () => {
     } else if (!recipe) {
       const fetchRecipe = async () => {
         try {
+          setIsLoading(true);
           const recipeData = await userService.getRecipeById(id);
           if (isMounted.current) {
             updateRecipe(recipeData);
@@ -62,14 +65,21 @@ const AIAssist = () => {
         } catch (error) {
           console.error("Error fetching recipe:", error);
           if (isMounted.current) {
-            navigate("/saved");
+            setError("Failed to load recipe. Please try again.");
+            setTimeout(() => {
+              navigate("/saved");
+            }, 2000);
+          }
+        } finally {
+          if (isMounted.current) {
+            setIsLoading(false);
           }
         }
       };
 
       fetchRecipe();
     }
-  }, [id, navigate, location.state, recipe, updateRecipe]);
+  }, [id, navigate, location.state, recipe, updateRecipe, setIsLoading]);
 
   // Add initial message only once when recipe is available
   useEffect(() => {
@@ -102,7 +112,6 @@ const AIAssist = () => {
 
     try {
       // Call API to get bot response
-
       const response = await userService.getAIResponse(
         id,
         message,
@@ -145,11 +154,24 @@ const AIAssist = () => {
     };
   }, [clearChat]);
 
-  if (!recipe) {
+  if (!recipe && isLoading) {
     return (
       <PageLayout>
         <div className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading recipe...</div>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#E63946] mx-auto mb-4"></div>
+            <div className="text-lg">Loading recipe...</div>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageLayout>
+        <div className="container mx-auto px-4 py-8">
+          <Alert type="error" message={error} />
         </div>
       </PageLayout>
     );
@@ -202,7 +224,7 @@ const AIAssist = () => {
               }`}
             >
               I'm here to help you with your recipe:{" "}
-              <span className="font-semibold">{recipe.title}</span>
+              <span className="font-semibold">{recipe?.title}</span>
             </p>
           </div>
 

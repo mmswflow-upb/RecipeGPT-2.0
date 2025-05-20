@@ -134,6 +134,11 @@ export const userService = {
     return response.data;
   },
 
+  getRecipeById: async (id) => {
+    const response = await api.get(`/api/recipes/${id}`);
+    return response.data;
+  },
+
   getAIResponse: async (recipeId, message, conversationSummary) => {
     try {
       const response = await api.post("/api/queryRecipe", {
